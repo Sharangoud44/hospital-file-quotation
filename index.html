@@ -116,6 +116,15 @@
       margin-top: 4px;
       font-size: 12px;
     }
+    #boardResult {
+      margin-top: 15px;
+      padding: 12px;
+      border: 2px dashed #4caf50;
+      background: #ecfff0;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -143,7 +152,7 @@
 
       <div class="field">
         <label for="quantity">Quantity</label>
-        <input type="number" id="quantity" placeholder="Qty" value="1" />
+        <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes()" />
       </div>
     </div>
 
@@ -176,6 +185,7 @@
           </select>
         </div>
         <div id="sizePreview" class="size-preview"></div>
+        <div id="boardResult"></div>
       </div>
 
       <div class="step">
@@ -209,14 +219,16 @@
       const boardType = document.getElementById("boardType").value;
       const sizeDropdown = document.getElementById("size");
       const sizePreview = document.getElementById("sizePreview");
+      const boardResult = document.getElementById("boardResult");
 
       sizeDropdown.innerHTML = '<option value="">Select Size</option>';
       sizePreview.innerHTML = "";
+      boardResult.innerHTML = "";
 
       let fileW = parseFloat(document.getElementById("width").value);
       let fileH = parseFloat(document.getElementById("length").value);
-
-      if (!fileW || !fileH) return;
+      let quantity = parseInt(document.getElementById("quantity").value);
+      if (!fileW || !fileH || !quantity) return;
 
       let sizes = [];
       if (boardType === "Art Card") {
@@ -227,6 +239,7 @@
 
       let bestWastage = Infinity;
       let bestSize = "";
+      let bestFitCount = 0;
 
       let boardMetrics = sizes.map(size => {
         const dims = size.split(" X ");
@@ -241,14 +254,13 @@
         let totalArea = width * height;
         let wastage = totalArea - usedArea;
 
-        return { size, height, width, fitCount, wastage };
-      });
-
-      boardMetrics.forEach(b => {
-        if (b.wastage < bestWastage) {
-          bestWastage = b.wastage;
-          bestSize = b.size;
+        if (wastage < bestWastage && fitCount > 0) {
+          bestWastage = wastage;
+          bestSize = size;
+          bestFitCount = fitCount;
         }
+
+        return { size, height, width, fitCount, wastage };
       });
 
       boardMetrics.forEach(b => {
@@ -274,6 +286,15 @@
         option.textContent = b.size;
         sizeDropdown.appendChild(option);
       });
+
+      if (bestFitCount > 0) {
+        const totalSheets = Math.ceil(quantity / bestFitCount);
+        boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
+          Best Size: <b>${bestSize}</b><br>
+          Files per Sheet: <b>${bestFitCount}</b><br>
+          Quantity Required: <b>${quantity}</b><br>
+          <b>Total Sheets Needed: ${totalSheets}</b>`;
+      }
     }
 
     function calculatePrice() {
