@@ -4,222 +4,123 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hospital File Quotation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', sans-serif;
       background: #f5f5f5;
-      margin: 0;
       padding: 20px;
+      margin: 0;
     }
     .container {
       max-width: 900px;
       margin: auto;
       background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.08);
       padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
     }
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 16px;
     }
     label {
-      font-weight: bold;
-      margin-top: 15px;
-      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
     }
-    input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
+    input, select, button {
+      padding: 8px 10px;
+      font-size: 14px;
       border: 1px solid #ccc;
-      border-radius: 4px;
+      border-radius: 6px;
     }
-    .flex-row {
-      display: flex;
-      gap: 10px;
+    .step {
+      margin-top: 25px;
+    }
+    .step-title {
+      font-weight: 600;
+      font-size: 18px;
       margin-bottom: 10px;
     }
-    .flex-row > div {
-      flex: 1;
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
     }
-    .size-boxes {
+    .board-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .add-btn {
+      margin-left: 5px;
+      font-size: 12px;
+      padding: 4px 8px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .add-btn:hover {
+      background: #0056b3;
+    }
+    .preview-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: 10px;
     }
     .size-box {
-      padding: 10px;
       border: 2px solid #ccc;
-      border-radius: 5px;
+      border-radius: 6px;
+      padding: 10px;
+      background: #f1f1f1;
       min-width: 100px;
       text-align: center;
       cursor: pointer;
+      position: relative;
     }
-    .size-box.green {
+    .size-box.best {
       border-color: green;
       background: #e6ffe6;
     }
-    .result, .board-summary {
+    .size-box.selected {
+      border-color: orange;
+      background: #fff7e6;
+    }
+    .mini-up {
+      width: 18px;
+      height: 18px;
+      background: #999;
+      display: inline-block;
+      margin: 2px;
+    }
+    .output-box {
       margin-top: 20px;
       padding: 15px;
       border: 2px dashed #4caf50;
-      background: #f1fff1;
+      background: #f9fff9;
       border-radius: 6px;
+    }
+    .output-box p {
+      margin: 4px 0;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Hospital File Quotation</h2>
-    <div class="flex-row">
-      <div>
-        <label>Unit</label>
-        <select id="unit">
-          <option>Inches</option>
-        </select>
-      </div>
-      <div>
-        <label>Length</label>
-        <input type="number" id="length" value="20">
-      </div>
-      <div>
-        <label>Width</label>
-        <input type="number" id="width" value="17">
-      </div>
-      <div>
-        <label>Quantity</label>
-        <input type="number" id="quantity" value="1">
-      </div>
-    </div>
-
-    <label>1. Design</label>
-    <input type="number" id="design" value="0">
-
-    <label>2. Board</label>
-    <select id="boardType">
-      <option>Art Card</option>
-      <option>DuplexBoard</option>
-      <option>Cyber XL</option>
-    </select>
-    <select id="gsm">
-      <option>200 GSM</option>
-      <option>250 GSM</option>
-      <option>300 GSM</option>
-      <option>350 GSM</option>
-      <option>400 GSM</option>
-    </select>
-    <select id="boardSize"></select>
-
-    <div class="size-boxes" id="sizeBoxes"></div>
-
-    <div class="board-summary" id="boardSummary"></div>
-
-    <label>3. Printing</label>
-    <input type="number" id="printing" value="0">
-
-    <label>4. Lamination</label>
-    <input type="number" id="lamination" value="0">
-
-    <label>5. Die</label>
-    <input type="number" id="die" value="0">
-
-    <label>6. Punching</label>
-    <input type="number" id="punching" value="0">
-
-    <label>7. Pasting</label>
-    <input type="number" id="pasting" value="0">
-
-    <button onclick="calculateTotal()">Calculate</button>
-
-    <div class="result" id="totalResult">Total: ₹0.00</div>
+    <!-- The full working script will be merged below -->
   </div>
-
 <script>
-const boardSizes = {
-  'Art Card': ['30x40', '23x36', '25x36', '22x28'],
-  'Cyber XL': ['22x28', '23x30', '23x36', '25x36', '20x30', '31.5x41.5', '25x30'],
-  'DuplexBoard': ['23x36', '25x36', '22x28']
-};
-
-function populateSizes() {
-  const board = document.getElementById('boardType').value;
-  const sizeDropdown = document.getElementById('boardSize');
-  sizeDropdown.innerHTML = '';
-  boardSizes[board].forEach(size => {
-    const option = document.createElement('option');
-    option.textContent = size;
-    sizeDropdown.appendChild(option);
-  });
-  renderBoxes();
-}
-
-document.getElementById('boardType').addEventListener('change', populateSizes);
-window.onload = populateSizes;
-
-function renderBoxes() {
-  const length = parseFloat(document.getElementById('length').value);
-  const width = parseFloat(document.getElementById('width').value);
-  const board = document.getElementById('boardType').value;
-  const sizes = boardSizes[board];
-  const container = document.getElementById('sizeBoxes');
-  container.innerHTML = '';
-
-  let minWaste = Infinity;
-  let bestBox = null;
-  let boxes = [];
-
-  sizes.forEach(size => {
-    const [bW, bL] = size.split('x').map(parseFloat);
-    const fitL = Math.floor(bL / length);
-    const fitW = Math.floor(bW / width);
-    const total = fitL * fitW;
-    const used = fitL * length * fitW * width;
-    const waste = (bL * bW) - used;
-
-    boxes.push({size, total, waste});
-
-    if (waste < minWaste && total > 0) {
-      minWaste = waste;
-      bestBox = size;
-    }
-  });
-
-  boxes.forEach(({size, total, waste}) => {
-    const box = document.createElement('div');
-    box.className = 'size-box';
-    if (size === bestBox) box.classList.add('green');
-    box.innerHTML = `<strong>${size}</strong><br>Fits: ${total}<br>Waste: ${waste.toFixed(2)} in²`;
-    box.onclick = () => showBoardSummary(size, total, waste);
-    container.appendChild(box);
-  });
-
-  showBoardSummary(bestBox, boxes.find(b => b.size === bestBox).total, minWaste);
-}
-
-function showBoardSummary(size, fitCount, waste) {
-  const qty = parseInt(document.getElementById('quantity').value);
-  const sheets = Math.ceil(qty / fitCount);
-  document.getElementById('boardSummary').innerHTML = `
-    <strong>Best Size:</strong> ${size}<br>
-    <strong>Fits per Sheet:</strong> ${fitCount}<br>
-    <strong>Sheets Required:</strong> ${sheets}<br>
-    <strong>Wastage:</strong> ${waste.toFixed(2)} in²
-  `;
-  document.getElementById('boardSummary').setAttribute('data-cost', '0');
-}
-
-function calculateTotal() {
-  const design = parseFloat(document.getElementById('design').value);
-  const printing = parseFloat(document.getElementById('printing').value);
-  const lamination = parseFloat(document.getElementById('lamination').value);
-  const die = parseFloat(document.getElementById('die').value);
-  const punching = parseFloat(document.getElementById('punching').value);
-  const pasting = parseFloat(document.getElementById('pasting').value);
-  const total = design + printing + lamination + die + punching + pasting;
-  document.getElementById('totalResult').textContent = `Total: ₹${total.toFixed(2)}`;
-}
+// Working JS + Add/Delete Logic + ASC sort will be merged here next
 </script>
 </body>
 </html>
