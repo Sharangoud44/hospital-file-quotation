@@ -100,10 +100,15 @@
       text-align: center;
       font-size: 12px;
       position: relative;
+      cursor: pointer;
     }
     .size-card.best {
       border: 2px solid green;
       background-color: #e6ffe6;
+    }
+    .size-card.selected {
+      border: 2px solid orange;
+      background-color: #fff7e6;
     }
     .mini-box {
       display: inline-block;
@@ -215,6 +220,9 @@
   </div>
 
   <script>
+    let boardDataGlobal = [];
+    let bestSizeGlobal = "";
+
     function updateBoardSizes() {
       const boardType = document.getElementById("boardType").value;
       const sizeDropdown = document.getElementById("size");
@@ -238,63 +246,65 @@
       }
 
       let bestWastage = Infinity;
-      let bestSize = "";
       let bestFitCount = 0;
 
-      let boardMetrics = sizes.map(size => {
-        const dims = size.split(" X ");
-        const height = parseFloat(dims[0]);
-        const width = parseFloat(dims[1]);
-
-        let fit1 = Math.floor(width / fileW) * Math.floor(height / fileH);
-        let fit2 = Math.floor(width / fileH) * Math.floor(height / fileW);
+      boardDataGlobal = sizes.map(size => {
+        const [h, w] = size.split(" X ").map(parseFloat);
+        let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
+        let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
         let fitCount = Math.max(fit1, fit2);
+        let used = fitCount * fileW * fileH;
+        let waste = w * h - used;
 
-        let usedArea = fitCount * fileW * fileH;
-        let totalArea = width * height;
-        let wastage = totalArea - usedArea;
-
-        if (wastage < bestWastage && fitCount > 0) {
-          bestWastage = wastage;
-          bestSize = size;
+        if (waste < bestWastage && fitCount > 0) {
+          bestWastage = waste;
+          bestSizeGlobal = size;
           bestFitCount = fitCount;
         }
-
-        return { size, height, width, fitCount, wastage };
+        return { size, width: w, height: h, fitCount, waste };
       });
 
-      boardMetrics.forEach(b => {
-        const box = document.createElement("div");
-        box.className = "size-card" + (b.size === bestSize ? " best" : "");
-        box.innerHTML = `<strong>${b.size}</strong><br>`;
+      boardDataGlobal.forEach(data => {
+        const card = document.createElement("div");
+        card.className = "size-card";
+        if (data.size === bestSizeGlobal) card.classList.add("best");
 
-        for (let i = 0; i < b.fitCount; i++) {
+        card.onclick = () => showBoardQuotation(data);
+
+        card.innerHTML = `<strong>${data.size}</strong><br>`;
+        for (let i = 0; i < data.fitCount; i++) {
           const dot = document.createElement("div");
           dot.className = "mini-box";
-          box.appendChild(dot);
+          card.appendChild(dot);
         }
-
         const text = document.createElement("div");
         text.className = "fit-count";
-        text.innerHTML = `${b.fitCount} file(s) fit<br>Wastage: ${b.wastage.toFixed(2)} in²` + (b.size === bestSize ? " ✅ Best Fit" : "");
-        box.appendChild(text);
-
-        sizePreview.appendChild(box);
-
-        const option = document.createElement("option");
-        option.value = b.size;
-        option.textContent = b.size;
-        sizeDropdown.appendChild(option);
+        text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestSizeGlobal ? " ✅ Best Fit" : "");
+        card.appendChild(text);
+        sizePreview.appendChild(card);
       });
 
-      if (bestFitCount > 0) {
-        const totalSheets = Math.ceil(quantity / bestFitCount);
-        boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
-          Best Size: <b>${bestSize}</b><br>
-          Files per Sheet: <b>${bestFitCount}</b><br>
-          Quantity Required: <b>${quantity}</b><br>
-          <b>Total Sheets Needed: ${totalSheets}</b>`;
-      }
+      const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
+      if (bestData) showBoardQuotation(bestData);
+    }
+
+    function showBoardQuotation(data) {
+      const boardResult = document.getElementById("boardResult");
+      const quantity = parseInt(document.getElementById("quantity").value);
+      const sheets = Math.ceil(quantity / data.fitCount);
+      boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
+        Selected Size: <b>${data.size}</b><br>
+        Files per Sheet: <b>${data.fitCount}</b><br>
+        Quantity Required: <b>${quantity}</b><br>
+        <b>Total Sheets Needed: ${sheets}</b>`;
+
+      // highlight selected box
+      document.querySelectorAll('.size-card').forEach(c => {
+        c.classList.remove('selected');
+        if (c.innerText.includes(data.size)) {
+          c.classList.add('selected');
+        }
+      });
     }
 
     function calculatePrice() {
@@ -302,25 +312,19 @@
       let length = parseFloat(document.getElementById("length").value) || 0;
       let width = parseFloat(document.getElementById("width").value) || 0;
       let quantity = parseInt(document.getElementById("quantity").value) || 1;
-
       if (unit === "cm") {
         length = length / 2.54;
         width = width / 2.54;
       }
-
       const area = length * width;
-
       const design = parseFloat(document.getElementById("design").value) || 0;
       const printRate = parseFloat(document.getElementById("printRate").value) || 0;
       const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
       const die = parseFloat(document.getElementById("die").value) || 0;
       const punching = parseFloat(document.getElementById("punching").value) || 0;
       const pasting = parseFloat(document.getElementById("pasting").value) || 0;
-
-      const board = 0; // pending logic
-
+      const board = 0;
       const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
-
       document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
     }
   </script>
