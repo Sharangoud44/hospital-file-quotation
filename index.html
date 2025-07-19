@@ -61,10 +61,6 @@
       border-color: green;
       background: #e6ffe6;
     }
-    .size-box.yellow {
-      border-color: orange;
-      background: #fff8e1;
-    }
     .result, .board-summary {
       margin-top: 20px;
       padding: 15px;
@@ -203,13 +199,15 @@ function renderBoxes() {
 }
 
 function showBoardSummary(size, fitCount, waste) {
-  const summary = document.getElementById('boardSummary');
-  summary.innerHTML = `
+  const qty = parseInt(document.getElementById('quantity').value);
+  const sheets = Math.ceil(qty / fitCount);
+  document.getElementById('boardSummary').innerHTML = `
     <strong>Best Size:</strong> ${size}<br>
     <strong>Fits per Sheet:</strong> ${fitCount}<br>
+    <strong>Sheets Required:</strong> ${sheets}<br>
     <strong>Wastage:</strong> ${waste.toFixed(2)} in²
   `;
-  summary.setAttribute('data-cost', '0');
+  document.getElementById('boardSummary').setAttribute('data-cost', '0');
 }
 
 function calculateTotal() {
@@ -219,7 +217,6 @@ function calculateTotal() {
   const die = parseFloat(document.getElementById('die').value);
   const punching = parseFloat(document.getElementById('punching').value);
   const pasting = parseFloat(document.getElementById('pasting').value);
-
   const total = design + printing + lamination + die + punching + pasting;
   document.getElementById('totalResult').textContent = `Total: ₹${total.toFixed(2)}`;
 }
