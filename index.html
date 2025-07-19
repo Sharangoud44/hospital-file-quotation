@@ -92,12 +92,28 @@
       margin: 10px 0;
     }
     .size-card {
-      border: 1px solid #ccc;
+      border: 2px solid #ccc;
       border-radius: 5px;
       padding: 8px 10px;
       background: #f1f1f1;
-      min-width: 80px;
+      min-width: 100px;
       text-align: center;
+      font-size: 12px;
+      position: relative;
+    }
+    .size-card.best {
+      border: 2px solid green;
+      background-color: #e6ffe6;
+    }
+    .mini-box {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background-color: #888;
+      margin: 2px;
+    }
+    .fit-count {
+      margin-top: 4px;
       font-size: 12px;
     }
   </style>
@@ -117,12 +133,12 @@
 
       <div class="field">
         <label for="length">Length</label>
-        <input type="number" id="length" placeholder="Length" />
+        <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes()" />
       </div>
 
       <div class="field">
         <label for="width">Width</label>
-        <input type="number" id="width" placeholder="Width" />
+        <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes()" />
       </div>
 
       <div class="field">
@@ -197,6 +213,11 @@
       sizeDropdown.innerHTML = '<option value="">Select Size</option>';
       sizePreview.innerHTML = "";
 
+      let fileW = parseFloat(document.getElementById("width").value);
+      let fileH = parseFloat(document.getElementById("length").value);
+
+      if (!fileW || !fileH) return;
+
       let sizes = [];
       if (boardType === "Art Card") {
         sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28"];
@@ -204,20 +225,54 @@
         sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
       }
 
+      let bestFit = 0;
+      let bestSize = "";
+
       sizes.forEach(size => {
+        const dims = size.split(" X ");
+        const height = parseFloat(dims[0]);
+        const width = parseFloat(dims[1]);
+
+        let fit1 = Math.floor(width / fileW) * Math.floor(height / fileH);
+        let fit2 = Math.floor(width / fileH) * Math.floor(height / fileW);
+        let fitCount = Math.max(fit1, fit2);
+
+        if (fitCount > bestFit) {
+          bestFit = fitCount;
+          bestSize = size;
+        }
+      });
+
+      sizes.forEach(size => {
+        const dims = size.split(" X ");
+        const height = parseFloat(dims[0]);
+        const width = parseFloat(dims[1]);
+
+        let fit1 = Math.floor(width / fileW) * Math.floor(height / fileH);
+        let fit2 = Math.floor(width / fileH) * Math.floor(height / fileW);
+        let fitCount = Math.max(fit1, fit2);
+
+        const box = document.createElement("div");
+        box.className = "size-card" + (fitCount === bestFit ? " best" : "");
+        box.innerHTML = `<strong>${size}</strong><br>`;
+
+        for (let i = 0; i < fitCount; i++) {
+          const dot = document.createElement("div");
+          dot.className = "mini-box";
+          box.appendChild(dot);
+        }
+
+        const text = document.createElement("div");
+        text.className = "fit-count";
+        text.textContent = `${fitCount} file(s) fit` + (fitCount === bestFit ? " ✅ Best Fit" : "");
+        box.appendChild(text);
+
+        sizePreview.appendChild(box);
+
         const option = document.createElement("option");
         option.value = size;
         option.textContent = size;
         sizeDropdown.appendChild(option);
-
-        // create visual card box
-        const dims = size.split(" X ");
-        const height = dims[0];
-        const width = dims[1];
-        const box = document.createElement("div");
-        box.className = "size-card";
-        box.innerHTML = `${size}<br>Height: ${height}<br>Width: ${width}`;
-        sizePreview.appendChild(box);
       });
     }
 
@@ -241,7 +296,7 @@
       const punching = parseFloat(document.getElementById("punching").value) || 0;
       const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
-      const board = 0; // awaiting logic
+      const board = 0; // pending logic
 
       const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
 
