@@ -116,9 +116,6 @@
     </select>
     <select id="boardSize"></select>
 
-    <label>Board Rate Per Sheet (₹)</label>
-    <input type="number" id="boardRate" value="0">
-
     <div class="size-boxes" id="sizeBoxes"></div>
 
     <div class="board-summary" id="boardSummary"></div>
@@ -206,18 +203,13 @@ function renderBoxes() {
 }
 
 function showBoardSummary(size, fitCount, waste) {
-  const qty = parseInt(document.getElementById('quantity').value);
-  const sheets = Math.ceil(qty / fitCount);
-  const rate = parseFloat(document.getElementById('boardRate').value);
-  const boardCost = sheets * rate;
-  document.getElementById('boardSummary').innerHTML = `
+  const summary = document.getElementById('boardSummary');
+  summary.innerHTML = `
     <strong>Best Size:</strong> ${size}<br>
     <strong>Fits per Sheet:</strong> ${fitCount}<br>
-    <strong>Sheets Required:</strong> ${sheets}<br>
-    <strong>Wastage:</strong> ${waste.toFixed(2)} in²<br>
-    <strong>Board Total:</strong> ₹${boardCost.toFixed(2)}
+    <strong>Wastage:</strong> ${waste.toFixed(2)} in²
   `;
-  document.getElementById('boardSummary').setAttribute('data-cost', boardCost);
+  summary.setAttribute('data-cost', '0');
 }
 
 function calculateTotal() {
@@ -227,9 +219,8 @@ function calculateTotal() {
   const die = parseFloat(document.getElementById('die').value);
   const punching = parseFloat(document.getElementById('punching').value);
   const pasting = parseFloat(document.getElementById('pasting').value);
-  const boardCost = parseFloat(document.getElementById('boardSummary').getAttribute('data-cost')) || 0;
 
-  const total = design + printing + lamination + die + punching + pasting + boardCost;
+  const total = design + printing + lamination + die + punching + pasting;
   document.getElementById('totalResult').textContent = `Total: ₹${total.toFixed(2)}`;
 }
 </script>
