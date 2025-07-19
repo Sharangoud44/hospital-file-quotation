@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital File Quotation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background-color: #f2f2f2;
+    }
+    h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .total {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      color: green;
+    }
+    .box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Hospital File Quotation</h2>
+
+    <label for="unit">Select Unit:</label>
+    <select id="unit">
+      <option value="inch">Inches</option>
+      <option value="cm">Centimeters</option>
+    </select>
+
+    <label for="length">Length:</label>
+    <input type="number" id="length" placeholder="Enter length" />
+
+    <label for="width">Width:</label>
+    <input type="number" id="width" placeholder="Enter width" />
+
+    <label for="quantity">Quantity:</label>
+    <input type="number" id="quantity" placeholder="Enter quantity" value="1" />
+
+    <div class="total" id="total">Total: ₹0.00</div>
+  </div>
+
+  <script>
+    const inputs = document.querySelectorAll("input, select");
+    const totalDiv = document.getElementById("total");
+
+    function calculatePrice() {
+      const unit = document.getElementById("unit").value;
+      let length = parseFloat(document.getElementById("length").value) || 0;
+      let width = parseFloat(document.getElementById("width").value) || 0;
+      let quantity = parseInt(document.getElementById("quantity").value) || 1;
+
+      if (unit === "cm") {
+        length = length / 2.54;
+        width = width / 2.54;
+      }
+
+      const area = length * width; // in square inches
+
+      const design = 3;
+      const boardRate = 0.2;
+      const printRate = 0.25;
+      const laminationRate = 0.15;
+      const die = 1.5;
+      const punching = 0.8;
+      const pasting = 1.7;
+
+      const board = area * boardRate;
+      const print = area * printRate;
+      const lamination = area * laminationRate;
+
+      const perFileCost = design + board + print + lamination + die + punching + pasting;
+      const total = perFileCost * quantity;
+
+      totalDiv.textContent = `Total: ₹${total.toFixed(2)}`;
+    }
+
+    inputs.forEach(input => input.addEventListener("input", calculatePrice));
+  </script>
+</body>
+</html>
