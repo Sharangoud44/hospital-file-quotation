@@ -226,9 +226,10 @@
       }
 
       let bestFit = 0;
+      let bestWastage = Infinity;
       let bestSize = "";
 
-      sizes.forEach(size => {
+      let boardMetrics = sizes.map(size => {
         const dims = size.split(" X ");
         const height = parseFloat(dims[0]);
         const width = parseFloat(dims[1]);
@@ -237,26 +238,27 @@
         let fit2 = Math.floor(width / fileH) * Math.floor(height / fileW);
         let fitCount = Math.max(fit1, fit2);
 
-        if (fitCount > bestFit) {
-          bestFit = fitCount;
-          bestSize = size;
+        let usedArea = fitCount * fileW * fileH;
+        let totalArea = width * height;
+        let wastage = totalArea - usedArea;
+
+        return { size, height, width, fitCount, wastage };
+      });
+
+      boardMetrics.forEach(b => {
+        if (b.fitCount > bestFit || (b.fitCount === bestFit && b.wastage < bestWastage)) {
+          bestFit = b.fitCount;
+          bestWastage = b.wastage;
+          bestSize = b.size;
         }
       });
 
-      sizes.forEach(size => {
-        const dims = size.split(" X ");
-        const height = parseFloat(dims[0]);
-        const width = parseFloat(dims[1]);
-
-        let fit1 = Math.floor(width / fileW) * Math.floor(height / fileH);
-        let fit2 = Math.floor(width / fileH) * Math.floor(height / fileW);
-        let fitCount = Math.max(fit1, fit2);
-
+      boardMetrics.forEach(b => {
         const box = document.createElement("div");
-        box.className = "size-card" + (fitCount === bestFit ? " best" : "");
-        box.innerHTML = `<strong>${size}</strong><br>`;
+        box.className = "size-card" + (b.size === bestSize ? " best" : "");
+        box.innerHTML = `<strong>${b.size}</strong><br>`;
 
-        for (let i = 0; i < fitCount; i++) {
+        for (let i = 0; i < b.fitCount; i++) {
           const dot = document.createElement("div");
           dot.className = "mini-box";
           box.appendChild(dot);
@@ -264,14 +266,14 @@
 
         const text = document.createElement("div");
         text.className = "fit-count";
-        text.textContent = `${fitCount} file(s) fit` + (fitCount === bestFit ? " ✅ Best Fit" : "");
+        text.innerHTML = `${b.fitCount} file(s) fit<br>Wastage: ${b.wastage} in²` + (b.size === bestSize ? " ✅ Best Fit" : "");
         box.appendChild(text);
 
         sizePreview.appendChild(box);
 
         const option = document.createElement("option");
-        option.value = size;
-        option.textContent = size;
+        option.value = b.size;
+        option.textContent = b.size;
         sizeDropdown.appendChild(option);
       });
     }
@@ -299,9 +301,3 @@
       const board = 0; // pending logic
 
       const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
-
-      document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
-    }
-  </script>
-</body>
-</html>
