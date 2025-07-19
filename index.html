@@ -85,6 +85,21 @@
     .gsm-select, .size-select {
       min-width: 150px;
     }
+    .size-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .size-card {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 8px 10px;
+      background: #f1f1f1;
+      min-width: 80px;
+      text-align: center;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -144,6 +159,7 @@
             <option value="">Select Size</option>
           </select>
         </div>
+        <div id="sizePreview" class="size-preview"></div>
       </div>
 
       <div class="step">
@@ -176,8 +192,10 @@
     function updateBoardSizes() {
       const boardType = document.getElementById("boardType").value;
       const sizeDropdown = document.getElementById("size");
+      const sizePreview = document.getElementById("sizePreview");
 
       sizeDropdown.innerHTML = '<option value="">Select Size</option>';
+      sizePreview.innerHTML = "";
 
       let sizes = [];
       if (boardType === "Art Card") {
@@ -191,6 +209,15 @@
         option.value = size;
         option.textContent = size;
         sizeDropdown.appendChild(option);
+
+        // create visual card box
+        const dims = size.split(" X ");
+        const height = dims[0];
+        const width = dims[1];
+        const box = document.createElement("div");
+        box.className = "size-card";
+        box.innerHTML = `${size}<br>Height: ${height}<br>Width: ${width}`;
+        sizePreview.appendChild(box);
       });
     }
 
@@ -214,7 +241,7 @@
       const punching = parseFloat(document.getElementById("punching").value) || 0;
       const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
-      const board = 0; // awaiting real board logic
+      const board = 0; // awaiting logic
 
       const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
 
