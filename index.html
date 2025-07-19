@@ -19,15 +19,21 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 100px;
+      margin-bottom: 10px;
     }
     label {
-      flex: 1;
-      min-width: 120px;
+      font-size: 13px;
+      margin-bottom: 4px;
     }
     input, select {
-      flex: 1;
       padding: 6px;
-      margin-bottom: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
@@ -49,9 +55,12 @@
       font-size: 16px;
       line-height: 1.6;
     }
-    .steps b {
-      display: block;
-      margin-bottom: 5px;
+    .steps .step {
+      margin-bottom: 10px;
+    }
+    .steps label {
+      font-weight: bold;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -60,29 +69,40 @@
     <h2>Hospital File Quotation</h2>
 
     <div class="row">
-      <label for="unit">Unit:</label>
-      <select id="unit">
-        <option value="inch">Inches</option>
-        <option value="cm">Centimeters</option>
-      </select>
+      <div class="field">
+        <label for="unit">Unit</label>
+        <select id="unit">
+          <option value="inch">Inches</option>
+          <option value="cm">Centimeters</option>
+        </select>
+      </div>
 
-      <label for="length">Length:</label>
-      <input type="number" id="length" placeholder="Length" />
+      <div class="field">
+        <label for="length">Length</label>
+        <input type="number" id="length" placeholder="Length" />
+      </div>
 
-      <label for="width">Width:</label>
-      <input type="number" id="width" placeholder="Width" />
+      <div class="field">
+        <label for="width">Width</label>
+        <input type="number" id="width" placeholder="Width" />
+      </div>
+
+      <div class="field">
+        <label for="quantity">Quantity</label>
+        <input type="number" id="quantity" placeholder="Qty" value="1" />
+      </div>
     </div>
 
     <div class="total" id="total">Total: ₹0.00</div>
 
     <div class="steps">
-      <b>1. Design</b>
-      <b>2. Board</b>
-      <b>3. Printing</b>
-      <b>4. Lamination</b>
-      <b>5. Die</b>
-      <b>6. Punching</b>
-      <b>7. Pasting</b>
+      <div class="step"><label for="design">1. Design</label><input type="number" id="design" value="3"></div>
+      <div class="step"><label for="board">2. Board</label><input type="number" id="boardRate" value="0.2"></div>
+      <div class="step"><label for="print">3. Printing</label><input type="number" id="printRate" value="0.25"></div>
+      <div class="step"><label for="lamination">4. Lamination</label><input type="number" id="laminationRate" value="0.15"></div>
+      <div class="step"><label for="die">5. Die</label><input type="number" id="die" value="1.5"></div>
+      <div class="step"><label for="punching">6. Punching</label><input type="number" id="punching" value="0.8"></div>
+      <div class="step"><label for="pasting">7. Pasting</label><input type="number" id="pasting" value="1.7"></div>
     </div>
   </div>
 
@@ -94,27 +114,29 @@
       const unit = document.getElementById("unit").value;
       let length = parseFloat(document.getElementById("length").value) || 0;
       let width = parseFloat(document.getElementById("width").value) || 0;
+      let quantity = parseInt(document.getElementById("quantity").value) || 1;
 
       if (unit === "cm") {
         length = length / 2.54;
         width = width / 2.54;
       }
 
-      const area = length * width; // in square inches
+      const area = length * width;
 
-      const design = 3; // fixed
-      const boardRate = 0.2;
-      const printRate = 0.25;
-      const laminationRate = 0.15;
-      const die = 1.5;
-      const punching = 0.8;
-      const pasting = 1.7;
+      const design = parseFloat(document.getElementById("design").value) || 0;
+      const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
+      const printRate = parseFloat(document.getElementById("printRate").value) || 0;
+      const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
+      const die = parseFloat(document.getElementById("die").value) || 0;
+      const punching = parseFloat(document.getElementById("punching").value) || 0;
+      const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
       const board = area * boardRate;
       const print = area * printRate;
       const lamination = area * laminationRate;
 
-      const total = design + board + print + lamination + die + punching + pasting;
+      const perFileCost = design + board + print + lamination + die + punching + pasting;
+      const total = perFileCost * quantity;
 
       totalDiv.textContent = `Total: ₹${total.toFixed(2)}`;
     }
