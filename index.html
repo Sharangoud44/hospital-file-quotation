@@ -225,7 +225,6 @@
         sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
       }
 
-      let bestFit = 0;
       let bestWastage = Infinity;
       let bestSize = "";
 
@@ -246,8 +245,7 @@
       });
 
       boardMetrics.forEach(b => {
-        if (b.fitCount > bestFit || (b.fitCount === bestFit && b.wastage < bestWastage)) {
-          bestFit = b.fitCount;
+        if (b.wastage < bestWastage) {
           bestWastage = b.wastage;
           bestSize = b.size;
         }
@@ -266,7 +264,7 @@
 
         const text = document.createElement("div");
         text.className = "fit-count";
-        text.innerHTML = `${b.fitCount} file(s) fit<br>Wastage: ${b.wastage} in²` + (b.size === bestSize ? " ✅ Best Fit" : "");
+        text.innerHTML = `${b.fitCount} file(s) fit<br>Wastage: ${b.wastage.toFixed(2)} in²` + (b.size === bestSize ? " ✅ Best Fit" : "");
         box.appendChild(text);
 
         sizePreview.appendChild(box);
