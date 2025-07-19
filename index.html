@@ -8,27 +8,32 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      max-width: 500px;
+      max-width: 600px;
       margin: auto;
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
     }
     h2 {
       text-align: center;
     }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     label {
-      display: block;
-      margin-top: 10px;
+      flex: 1;
+      min-width: 120px;
     }
     input, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
+      flex: 1;
+      padding: 6px;
+      margin-bottom: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
     .total {
       margin-top: 20px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
       text-align: center;
       color: green;
@@ -39,28 +44,46 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+    .steps {
+      margin-top: 20px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .steps b {
+      display: block;
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="box">
     <h2>Hospital File Quotation</h2>
 
-    <label for="unit">Select Unit:</label>
-    <select id="unit">
-      <option value="inch">Inches</option>
-      <option value="cm">Centimeters</option>
-    </select>
+    <div class="row">
+      <label for="unit">Unit:</label>
+      <select id="unit">
+        <option value="inch">Inches</option>
+        <option value="cm">Centimeters</option>
+      </select>
 
-    <label for="length">Length:</label>
-    <input type="number" id="length" placeholder="Enter length" />
+      <label for="length">Length:</label>
+      <input type="number" id="length" placeholder="Length" />
 
-    <label for="width">Width:</label>
-    <input type="number" id="width" placeholder="Enter width" />
-
-    <label for="quantity">Quantity:</label>
-    <input type="number" id="quantity" placeholder="Enter quantity" value="1" />
+      <label for="width">Width:</label>
+      <input type="number" id="width" placeholder="Width" />
+    </div>
 
     <div class="total" id="total">Total: ₹0.00</div>
+
+    <div class="steps">
+      <b>1. Design</b>
+      <b>2. Board</b>
+      <b>3. Printing</b>
+      <b>4. Lamination</b>
+      <b>5. Die</b>
+      <b>6. Punching</b>
+      <b>7. Pasting</b>
+    </div>
   </div>
 
   <script>
@@ -71,7 +94,6 @@
       const unit = document.getElementById("unit").value;
       let length = parseFloat(document.getElementById("length").value) || 0;
       let width = parseFloat(document.getElementById("width").value) || 0;
-      let quantity = parseInt(document.getElementById("quantity").value) || 1;
 
       if (unit === "cm") {
         length = length / 2.54;
@@ -80,7 +102,7 @@
 
       const area = length * width; // in square inches
 
-      const design = 3;
+      const design = 3; // fixed
       const boardRate = 0.2;
       const printRate = 0.25;
       const laminationRate = 0.15;
@@ -92,8 +114,7 @@
       const print = area * printRate;
       const lamination = area * laminationRate;
 
-      const perFileCost = design + board + print + lamination + die + punching + pasting;
-      const total = perFileCost * quantity;
+      const total = design + board + print + lamination + die + punching + pasting;
 
       totalDiv.textContent = `Total: ₹${total.toFixed(2)}`;
     }
