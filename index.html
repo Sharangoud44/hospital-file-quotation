@@ -121,7 +121,7 @@
       margin-top: 4px;
       font-size: 12px;
     }
-    #boardResult {
+    #boardResult, #printingResult {
       margin-top: 15px;
       padding: 12px;
       border: 2px dashed #4caf50;
@@ -138,7 +138,6 @@
 <body>
   <div class="box">
     <h2>Hospital File Quotation</h2>
-
     <div class="row">
       <div class="field">
         <label for="unit">Unit</label>
@@ -147,20 +146,17 @@
           <option value="cm">Centimeters</option>
         </select>
       </div>
-
       <div class="field">
         <label for="length">Length</label>
-        <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes(); updatePrintCost()" />
+        <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes()" />
       </div>
-
       <div class="field">
         <label for="width">Width</label>
-        <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes(); updatePrintCost()" />
+        <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes()" />
       </div>
-
       <div class="field">
         <label for="quantity">Quantity</label>
-        <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes(); updatePrintCost()" />
+        <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes()" />
       </div>
     </div>
 
@@ -173,46 +169,52 @@
       <div class="step">
         <label>2. Board</label>
         <div class="step-group">
-          <select id="boardType" onchange="updateBoardSizes()">
-            <option value="">Select</option>
-            <option value="Art Card">Art Card</option>
-            <option value="DuplexBoard">DuplexBoard</option>
-            <option value="Cyber XL">Cyber XL</option>
-          </select>
+          <div>
+            <select id="boardType" onchange="updateBoardSizes()">
+              <option value="">Select</option>
+              <option value="Art Card">Art Card</option>
+              <option value="DuplexBoard">DuplexBoard</option>
+              <option value="Cyber XL">Cyber XL</option>
+            </select>
+          </div>
 
-          <select id="gsm" class="gsm-select">
-            <option value="200">200 GSM</option>
-            <option value="250">250 GSM</option>
-            <option value="300">300 GSM</option>
-            <option value="350">350 GSM</option>
-            <option value="400">400 GSM</option>
-          </select>
+          <div>
+            <select id="gsm" class="gsm-select">
+              <option value="200">200 GSM</option>
+              <option value="250">250 GSM</option>
+              <option value="300">300 GSM</option>
+              <option value="350">350 GSM</option>
+              <option value="400">400 GSM</option>
+            </select>
+          </div>
 
-          <select id="size" class="size-select">
-            <option value="">Select Size</option>
-          </select>
+          <div>
+            <select id="size" class="size-select">
+              <option value="">Select Size</option>
+            </select>
+          </div>
         </div>
 
         <div id="sizePreview" class="size-preview"></div>
 
         <div class="board-rate-box">
           <label for="boardRate">Board Rate Per Sheet (₹)</label>
-          <input type="number" id="boardRate" value="0" placeholder="Enter rate" oninput="updateBoardSizes()">
+          <input type="number" id="boardRate" value="0" placeholder="Enter rate">
         </div>
 
         <div id="boardResult"></div>
       </div>
 
       <div class="step">
-        <label for="printMachine">3. Printing Machine Size</label>
-        <select id="printMachine" onchange="updatePrintCost()">
-          <option value="">Select Machine</option>
-          <option value="13.4x19.8">13.4 x 19.8 (Small)</option>
+        <label>3. Printing</label>
+        <select id="printingSize">
+          <option value="19x26">19 X 26</option>
           <option value="15x20">15 X 20</option>
           <option value="18x23">18 X 23</option>
-          <option value="19x26">19 X 26</option>
           <option value="22x28">22 X 28</option>
+          <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
         </select>
+        <div id="printingResult"></div>
       </div>
 
       <div class="step">
@@ -237,123 +239,119 @@
     <div class="total" id="total">Total: ₹0.00</div>
   </div>
 
-  <script>
-    let boardDataGlobal = [];
-    let bestSizeGlobal = "";
+<script>
+let boardDataGlobal = [];
+let bestSizeGlobal = "";
 
-    function updateBoardSizes() {
-      const boardType = document.getElementById("boardType").value;
-      const sizeDropdown = document.getElementById("size");
-      const sizePreview = document.getElementById("sizePreview");
-      const boardResult = document.getElementById("boardResult");
+function updateBoardSizes() {
+  const boardType = document.getElementById("boardType").value;
+  const sizePreview = document.getElementById("sizePreview");
+  sizePreview.innerHTML = "";
 
-      sizeDropdown.innerHTML = '<option value="">Select Size</option>';
-      sizePreview.innerHTML = "";
-      boardResult.innerHTML = "";
+  let fileW = parseFloat(document.getElementById("width").value);
+  let fileH = parseFloat(document.getElementById("length").value);
+  let quantity = parseInt(document.getElementById("quantity").value);
+  if (!fileW || !fileH || !quantity) return;
 
-      let fileW = parseFloat(document.getElementById("width").value);
-      let fileH = parseFloat(document.getElementById("length").value);
-      let quantity = parseInt(document.getElementById("quantity").value);
-      if (!fileW || !fileH || !quantity) return;
+  let sizes = [];
+  if (boardType === "Art Card") {
+    sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28"];
+  } else if (boardType === "Cyber XL") {
+    sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
+  }
 
-      let sizes = [];
-      if (boardType === "Art Card") {
-        sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28"];
-      } else if (boardType === "Cyber XL") {
-        sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
-      }
+  const sizeDropdown = document.getElementById("size");
+  sizeDropdown.innerHTML = '<option value="">Select Size</option>';
+  sizes.forEach(s => sizeDropdown.innerHTML += `<option value="${s}">${s}</option>`);
 
-      let bestWastage = Infinity;
-      boardDataGlobal = sizes.map(size => {
-        const [h, w] = size.split(" X ").map(parseFloat);
-        let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
-        let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
-        let fitCount = Math.max(fit1, fit2);
-        let used = fitCount * fileW * fileH;
-        let waste = w * h - used;
+  let bestWastage = Infinity;
+  boardDataGlobal = sizes.map(size => {
+    const [h, w] = size.split(" X ").map(parseFloat);
+    let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
+    let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
+    let fitCount = Math.max(fit1, fit2);
+    let used = fitCount * fileW * fileH;
+    let waste = w * h - used;
 
-        if (waste < bestWastage && fitCount > 0) {
-          bestWastage = waste;
-          bestSizeGlobal = size;
-        }
-        return { size, width: w, height: h, fitCount, waste };
-      });
-
-      boardDataGlobal.forEach(data => {
-        const card = document.createElement("div");
-        card.className = "size-card";
-        if (data.size === bestSizeGlobal) card.classList.add("best");
-
-        card.onclick = () => showBoardQuotation(data);
-
-        card.innerHTML = `<strong>${data.size}</strong><br>`;
-        for (let i = 0; i < data.fitCount; i++) {
-          const dot = document.createElement("div");
-          dot.className = "mini-box";
-          card.appendChild(dot);
-        }
-        const text = document.createElement("div");
-        text.className = "fit-count";
-        text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestSizeGlobal ? " ✅ Best Fit" : "");
-        card.appendChild(text);
-        sizePreview.appendChild(card);
-      });
-
-      const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
-      if (bestData) showBoardQuotation(bestData);
+    if (waste < bestWastage && fitCount > 0) {
+      bestWastage = waste;
+      bestSizeGlobal = size;
     }
+    return { size, width: w, height: h, fitCount, waste };
+  });
 
-    function showBoardQuotation(data) {
-      const boardResult = document.getElementById("boardResult");
-      const quantity = parseInt(document.getElementById("quantity").value);
-      const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
-      const sheets = Math.ceil(quantity / data.fitCount);
-      const boardCost = sheets * boardRate;
+  boardDataGlobal.forEach(data => {
+    const card = document.createElement("div");
+    card.className = "size-card";
+    if (data.size === bestSizeGlobal) card.classList.add("best");
 
-      boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
-        Selected Size: <b>${data.size}</b><br>
-        Files per Sheet: <b>${data.fitCount}</b><br>
-        Quantity Required: <b>${quantity}</b><br>
-        Total Sheets Needed: <b>${sheets}</b><br>
-        <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
+    card.onclick = () => showBoardQuotation(data);
 
-      document.querySelectorAll('.size-card').forEach(c => {
-        c.classList.remove('selected');
-        if (c.innerText.includes(data.size)) {
-          c.classList.add('selected');
-        }
-      });
+    card.innerHTML = `<strong>${data.size}</strong><br>`;
+    for (let i = 0; i < data.fitCount; i++) {
+      const dot = document.createElement("div");
+      dot.className = "mini-box";
+      card.appendChild(dot);
     }
+    const text = document.createElement("div");
+    text.className = "fit-count";
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestSizeGlobal ? " ✅ Best Fit" : "");
+    card.appendChild(text);
+    sizePreview.appendChild(card);
+  });
 
-    function updatePrintCost() {
-      const machineSize = document.getElementById("printMachine").value;
-      const length = parseFloat(document.getElementById("length").value);
-      const width = parseFloat(document.getElementById("width").value);
-      const qty = parseInt(document.getElementById("quantity").value);
-      if (!machineSize || !length || !width || !qty) return;
+  const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
+  if (bestData) showBoardQuotation(bestData);
+}
 
-      const [mW, mL] = machineSize.split('x').map(parseFloat);
-      const fit1 = Math.floor(mW / width) * Math.floor(mL / length);
-      const fit2 = Math.floor(mW / length) * Math.floor(mL / width);
-      const fit = Math.max(fit1, fit2);
-      const printSheets = Math.ceil(qty / fit);
-      const costPerSheet = 1.5;
-      const totalPrintCost = printSheets * costPerSheet;
-      document.getElementById("printMachine").setAttribute('data-print-cost', totalPrintCost.toFixed(2));
+function showBoardQuotation(data) {
+  const boardResult = document.getElementById("boardResult");
+  const quantity = parseInt(document.getElementById("quantity").value);
+  const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
+  const sheets = Math.ceil(quantity / data.fitCount);
+  const boardCost = sheets * boardRate;
+
+  boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
+    Selected Size: <b>${data.size}</b><br>
+    Files per Sheet: <b>${data.fitCount}</b><br>
+    Quantity Required: <b>${quantity}</b><br>
+    Total Sheets Needed: <b>${sheets}</b><br>
+    <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
+
+  document.querySelectorAll('.size-card').forEach(c => {
+    c.classList.remove('selected');
+    if (c.innerText.includes(data.size)) {
+      c.classList.add('selected');
     }
+  });
 
-    function calculatePrice() {
-      const design = parseFloat(document.getElementById("design").value) || 0;
-      const printRate = parseFloat(document.getElementById("printMachine").getAttribute('data-print-cost')) || 0;
-      const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
-      const die = parseFloat(document.getElementById("die").value) || 0;
-      const punching = parseFloat(document.getElementById("punching").value) || 0;
-      const pasting = parseFloat(document.getElementById("pasting").value) || 0;
-      const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
-      const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
-      const total = design + board + printRate + laminationRate + die + punching + pasting;
-      document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
-    }
-  </script>
+  // printing logic
+  const printingSize = document.getElementById("printingSize").value;
+  let basePrice = (printingSize === "13.4x19.8") ? 1900 : 2500;
+  let extra = Math.floor((sheets - 1) / 1000) * 1000;
+  if (sheets > 3000) basePrice += extra;
+  document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
+    Machine Size: <b>${printingSize}</b><br>
+    Sheets: <b>${sheets}</b><br>
+    Printing Cost: ₹<b>${basePrice}</b>`;
+}
+
+function calculatePrice() {
+  const design = parseFloat(document.getElementById("design").value) || 0;
+  const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
+  const die = parseFloat(document.getElementById("die").value) || 0;
+  const punching = parseFloat(document.getElementById("punching").value) || 0;
+  const pasting = parseFloat(document.getElementById("pasting").value) || 0;
+
+  const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
+  const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
+
+  const printingCostMatch = document.getElementById("printingResult").innerText.match(/Printing Cost: ₹(\d+(\.\d+)?)/);
+  const printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
+
+  const total = design + board + printing + laminationRate + die + punching + pasting;
+  document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
+}
+</script>
 </body>
 </html>
