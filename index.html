@@ -150,17 +150,17 @@
 
       <div class="field">
         <label for="length">Length</label>
-        <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes()" />
+        <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes(); updatePrintCost()" />
       </div>
 
       <div class="field">
         <label for="width">Width</label>
-        <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes()" />
+        <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes(); updatePrintCost()" />
       </div>
 
       <div class="field">
         <label for="quantity">Quantity</label>
-        <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes()" />
+        <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes(); updatePrintCost()" />
       </div>
     </div>
 
@@ -173,46 +173,48 @@
       <div class="step">
         <label>2. Board</label>
         <div class="step-group">
-          <div>
-            <select id="boardType" onchange="updateBoardSizes()">
-              <option value="">Select</option>
-              <option value="Art Card">Art Card</option>
-              <option value="DuplexBoard">DuplexBoard</option>
-              <option value="Cyber XL">Cyber XL</option>
-            </select>
-          </div>
+          <select id="boardType" onchange="updateBoardSizes()">
+            <option value="">Select</option>
+            <option value="Art Card">Art Card</option>
+            <option value="DuplexBoard">DuplexBoard</option>
+            <option value="Cyber XL">Cyber XL</option>
+          </select>
 
-          <div>
-            <select id="gsm" class="gsm-select">
-              <option value="200">200 GSM</option>
-              <option value="250">250 GSM</option>
-              <option value="300">300 GSM</option>
-              <option value="350">350 GSM</option>
-              <option value="400">400 GSM</option>
-            </select>
-          </div>
+          <select id="gsm" class="gsm-select">
+            <option value="200">200 GSM</option>
+            <option value="250">250 GSM</option>
+            <option value="300">300 GSM</option>
+            <option value="350">350 GSM</option>
+            <option value="400">400 GSM</option>
+          </select>
 
-          <div>
-            <select id="size" class="size-select">
-              <option value="">Select Size</option>
-            </select>
-          </div>
+          <select id="size" class="size-select">
+            <option value="">Select Size</option>
+          </select>
         </div>
 
         <div id="sizePreview" class="size-preview"></div>
 
         <div class="board-rate-box">
           <label for="boardRate">Board Rate Per Sheet (₹)</label>
-          <input type="number" id="boardRate" value="0" placeholder="Enter rate">
+          <input type="number" id="boardRate" value="0" placeholder="Enter rate" oninput="updateBoardSizes()">
         </div>
 
         <div id="boardResult"></div>
       </div>
 
       <div class="step">
-        <label for="printRate">3. Printing</label>
-        <input type="number" id="printRate" value="0">
+        <label for="printMachine">3. Printing Machine Size</label>
+        <select id="printMachine" onchange="updatePrintCost()">
+          <option value="">Select Machine</option>
+          <option value="13.4x19.8">13.4 x 19.8 (Small)</option>
+          <option value="15x20">15 X 20</option>
+          <option value="18x23">18 X 23</option>
+          <option value="19x26">19 X 26</option>
+          <option value="22x28">22 X 28</option>
+        </select>
       </div>
+
       <div class="step">
         <label for="laminationRate">4. Lamination</label>
         <input type="number" id="laminationRate" value="0">
@@ -256,23 +258,10 @@
 
       let sizes = [];
       if (boardType === "Art Card") {
-        sizes = ["22 X 28", "23 X 36", "25 X 36", "30 X 40"];
+        sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28"];
       } else if (boardType === "Cyber XL") {
-        sizes = ["20 X 30", "22 X 28", "23 X 30", "23 X 36", "25 X 30", "25 X 36", "31.5 X 41.5"];
-      } else if (boardType === "DuplexBoard") {
-        sizes = ["22 X 28", "23 X 36", "25 X 36"];
+        sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
       }
-
-      sizes.sort((a, b) => {
-        const [a1, a2] = a.split(" X ").map(Number);
-        const [b1, b2] = b.split(" X ").map(Number);
-        return a1 * a2 - b1 * b2;
-      }).forEach(size => {
-        const option = document.createElement("option");
-        option.value = size;
-        option.textContent = size;
-        sizeDropdown.appendChild(option);
-      });
 
       let bestWastage = Infinity;
       boardDataGlobal = sizes.map(size => {
@@ -328,8 +317,6 @@
         Total Sheets Needed: <b>${sheets}</b><br>
         <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
 
-      calculatePrice();
-
       document.querySelectorAll('.size-card').forEach(c => {
         c.classList.remove('selected');
         if (c.innerText.includes(data.size)) {
@@ -338,23 +325,33 @@
       });
     }
 
-    document.getElementById("boardRate").addEventListener("input", () => {
-      const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
-      if (bestData) showBoardQuotation(bestData);
-    });
+    function updatePrintCost() {
+      const machineSize = document.getElementById("printMachine").value;
+      const length = parseFloat(document.getElementById("length").value);
+      const width = parseFloat(document.getElementById("width").value);
+      const qty = parseInt(document.getElementById("quantity").value);
+      if (!machineSize || !length || !width || !qty) return;
+
+      const [mW, mL] = machineSize.split('x').map(parseFloat);
+      const fit1 = Math.floor(mW / width) * Math.floor(mL / length);
+      const fit2 = Math.floor(mW / length) * Math.floor(mL / width);
+      const fit = Math.max(fit1, fit2);
+      const printSheets = Math.ceil(qty / fit);
+      const costPerSheet = 1.5;
+      const totalPrintCost = printSheets * costPerSheet;
+      document.getElementById("printMachine").setAttribute('data-print-cost', totalPrintCost.toFixed(2));
+    }
 
     function calculatePrice() {
       const design = parseFloat(document.getElementById("design").value) || 0;
-      const printRate = parseFloat(document.getElementById("printRate").value) || 0;
+      const printRate = parseFloat(document.getElementById("printMachine").getAttribute('data-print-cost')) || 0;
       const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
       const die = parseFloat(document.getElementById("die").value) || 0;
       const punching = parseFloat(document.getElementById("punching").value) || 0;
       const pasting = parseFloat(document.getElementById("pasting").value) || 0;
       const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
       const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
-
-      const area = parseFloat(document.getElementById("length").value) * parseFloat(document.getElementById("width").value);
-      const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
+      const total = design + board + printRate + laminationRate + die + punching + pasting;
       document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
     }
   </script>
