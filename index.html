@@ -8,7 +8,7 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      max-width: 700px;
+      max-width: 600px;
       margin: auto;
       background-color: #f9f9f9;
     }
@@ -85,19 +85,6 @@
     .gsm-select, .size-select {
       min-width: 150px;
     }
-    .add-btn {
-      background-color: #007bff;
-      border: none;
-      color: white;
-      padding: 4px 10px;
-      font-size: 12px;
-      margin-left: 5px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .add-btn:hover {
-      background-color: #0056b3;
-    }
     .size-preview {
       display: flex;
       flex-wrap: wrap;
@@ -143,9 +130,6 @@
       font-size: 14px;
       line-height: 1.5;
     }
-    .board-rate-box {
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
@@ -186,42 +170,26 @@
       <div class="step">
         <label>2. Board</label>
         <div class="step-group">
-          <div>
-            <select id="boardType" onchange="updateBoardSizes()">
-              <option value="">Select</option>
-              <option value="Art Card">Art Card</option>
-              <option value="DuplexBoard">DuplexBoard</option>
-              <option value="Cyber XL">Cyber XL</option>
-            </select>
-            <button class="add-btn" onclick="alert('Coming soon: Add/Delete Board Types')">+</button>
-          </div>
+          <select id="boardType" onchange="updateBoardSizes()">
+            <option value="">Select</option>
+            <option value="Art Card">Art Card</option>
+            <option value="DuplexBoard">DuplexBoard</option>
+            <option value="Cyber XL">Cyber XL</option>
+          </select>
 
-          <div>
-            <select id="gsm" class="gsm-select">
-              <option value="200">200 GSM</option>
-              <option value="250">250 GSM</option>
-              <option value="300">300 GSM</option>
-              <option value="350">350 GSM</option>
-              <option value="400">400 GSM</option>
-            </select>
-            <button class="add-btn" onclick="alert('Coming soon: Add/Delete GSM')">+</button>
-          </div>
+          <select id="gsm" class="gsm-select">
+            <option value="200">200 GSM</option>
+            <option value="250">250 GSM</option>
+            <option value="300">300 GSM</option>
+            <option value="350">350 GSM</option>
+            <option value="400">400 GSM</option>
+          </select>
 
-          <div>
-            <select id="size" class="size-select">
-              <option value="">Select Size</option>
-            </select>
-            <button class="add-btn" onclick="alert('Coming soon: Add/Delete Sizes')">+</button>
-          </div>
+          <select id="size" class="size-select">
+            <option value="">Select Size</option>
+          </select>
         </div>
-
         <div id="sizePreview" class="size-preview"></div>
-
-        <div class="board-rate-box">
-          <label for="boardRate">Board Rate Per Sheet (₹)</label>
-          <input type="number" id="boardRate" value="0" placeholder="Enter rate">
-        </div>
-
         <div id="boardResult"></div>
       </div>
 
@@ -278,6 +246,8 @@
       }
 
       let bestWastage = Infinity;
+      let bestFitCount = 0;
+
       boardDataGlobal = sizes.map(size => {
         const [h, w] = size.split(" X ").map(parseFloat);
         let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
@@ -289,6 +259,7 @@
         if (waste < bestWastage && fitCount > 0) {
           bestWastage = waste;
           bestSizeGlobal = size;
+          bestFitCount = fitCount;
         }
         return { size, width: w, height: h, fitCount, waste };
       });
@@ -320,16 +291,12 @@
     function showBoardQuotation(data) {
       const boardResult = document.getElementById("boardResult");
       const quantity = parseInt(document.getElementById("quantity").value);
-      const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
       const sheets = Math.ceil(quantity / data.fitCount);
-      const boardCost = sheets * boardRate;
-
       boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
         Selected Size: <b>${data.size}</b><br>
         Files per Sheet: <b>${data.fitCount}</b><br>
         Quantity Required: <b>${quantity}</b><br>
-        Total Sheets Needed: <b>${sheets}</b><br>
-        <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
+        <b>Total Sheets Needed: ${sheets}</b>`;
 
       // highlight selected box
       document.querySelectorAll('.size-card').forEach(c => {
@@ -341,16 +308,22 @@
     }
 
     function calculatePrice() {
+      const unit = document.getElementById("unit").value;
+      let length = parseFloat(document.getElementById("length").value) || 0;
+      let width = parseFloat(document.getElementById("width").value) || 0;
+      let quantity = parseInt(document.getElementById("quantity").value) || 1;
+      if (unit === "cm") {
+        length = length / 2.54;
+        width = width / 2.54;
+      }
+      const area = length * width;
       const design = parseFloat(document.getElementById("design").value) || 0;
       const printRate = parseFloat(document.getElementById("printRate").value) || 0;
       const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
       const die = parseFloat(document.getElementById("die").value) || 0;
       const punching = parseFloat(document.getElementById("punching").value) || 0;
       const pasting = parseFloat(document.getElementById("pasting").value) || 0;
-      const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
-      const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
-
-      const area = parseFloat(document.getElementById("length").value) * parseFloat(document.getElementById("width").value);
+      const board = 0;
       const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
       document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
     }
