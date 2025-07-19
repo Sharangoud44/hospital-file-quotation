@@ -85,19 +85,6 @@
     .gsm-select, .size-select {
       min-width: 150px;
     }
-    .add-btn {
-      background-color: #007bff;
-      border: none;
-      color: white;
-      padding: 4px 10px;
-      font-size: 12px;
-      margin-left: 5px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .add-btn:hover {
-      background-color: #0056b3;
-    }
     .size-preview {
       display: flex;
       flex-wrap: wrap;
@@ -193,7 +180,6 @@
               <option value="DuplexBoard">DuplexBoard</option>
               <option value="Cyber XL">Cyber XL</option>
             </select>
-            <button class="add-btn" onclick="alert('Coming soon: Add/Delete Board Types')">+</button>
           </div>
 
           <div>
@@ -204,14 +190,12 @@
               <option value="350">350 GSM</option>
               <option value="400">400 GSM</option>
             </select>
-            <button class="add-btn" onclick="alert('Coming soon: Add/Delete GSM')">+</button>
           </div>
 
           <div>
             <select id="size" class="size-select">
               <option value="">Select Size</option>
             </select>
-            <button class="add-btn" onclick="alert('Coming soon: Add/Delete Sizes')">+</button>
           </div>
         </div>
 
@@ -272,10 +256,23 @@
 
       let sizes = [];
       if (boardType === "Art Card") {
-        sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28"];
+        sizes = ["22 X 28", "23 X 36", "25 X 36", "30 X 40"];
       } else if (boardType === "Cyber XL") {
-        sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
+        sizes = ["20 X 30", "22 X 28", "23 X 30", "23 X 36", "25 X 30", "25 X 36", "31.5 X 41.5"];
+      } else if (boardType === "DuplexBoard") {
+        sizes = ["22 X 28", "23 X 36", "25 X 36"];
       }
+
+      sizes.sort((a, b) => {
+        const [a1, a2] = a.split(" X ").map(Number);
+        const [b1, b2] = b.split(" X ").map(Number);
+        return a1 * a2 - b1 * b2;
+      }).forEach(size => {
+        const option = document.createElement("option");
+        option.value = size;
+        option.textContent = size;
+        sizeDropdown.appendChild(option);
+      });
 
       let bestWastage = Infinity;
       boardDataGlobal = sizes.map(size => {
@@ -331,7 +328,8 @@
         Total Sheets Needed: <b>${sheets}</b><br>
         <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
 
-      // highlight selected box
+      calculatePrice();
+
       document.querySelectorAll('.size-card').forEach(c => {
         c.classList.remove('selected');
         if (c.innerText.includes(data.size)) {
@@ -339,6 +337,11 @@
         }
       });
     }
+
+    document.getElementById("boardRate").addEventListener("input", () => {
+      const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
+      if (bestData) showBoardQuotation(bestData);
+    });
 
     function calculatePrice() {
       const design = parseFloat(document.getElementById("design").value) || 0;
