@@ -72,6 +72,16 @@
       font-weight: bold;
       font-size: 15px;
     }
+    .step-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .gsm-select {
+      min-width: 90px;
+      flex: none;
+    }
   </style>
 </head>
 <body>
@@ -104,13 +114,50 @@
     </div>
 
     <div class="steps">
-      <div class="step"><label for="design">1. Design</label><input type="number" id="design" value="3"></div>
-      <div class="step"><label for="board">2. Board</label><input type="number" id="boardRate" value="0.2"></div>
-      <div class="step"><label for="print">3. Printing</label><input type="number" id="printRate" value="0.25"></div>
-      <div class="step"><label for="lamination">4. Lamination</label><input type="number" id="laminationRate" value="0.15"></div>
-      <div class="step"><label for="die">5. Die</label><input type="number" id="die" value="1.5"></div>
-      <div class="step"><label for="punching">6. Punching</label><input type="number" id="punching" value="0.8"></div>
-      <div class="step"><label for="pasting">7. Pasting</label><input type="number" id="pasting" value="1.7"></div>
+      <div class="step">
+        <label for="design">1. Design</label>
+        <input type="number" id="design" value="0">
+      </div>
+
+      <div class="step">
+        <label>2. Board</label>
+        <div class="step-group">
+          <select id="boardType">
+            <option value="Art Card">Art Card</option>
+            <option value="DuplexBoard">DuplexBoard</option>
+            <option value="Cyber XL">Cyber XL</option>
+          </select>
+
+          <select id="gsm" class="gsm-select">
+            <option value="200">200 GSM</option>
+            <option value="250">250 GSM</option>
+            <option value="300">300 GSM</option>
+            <option value="350">350 GSM</option>
+            <option value="400">400 GSM</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="step">
+        <label for="printRate">3. Printing</label>
+        <input type="number" id="printRate" value="0">
+      </div>
+      <div class="step">
+        <label for="laminationRate">4. Lamination</label>
+        <input type="number" id="laminationRate" value="0">
+      </div>
+      <div class="step">
+        <label for="die">5. Die</label>
+        <input type="number" id="die" value="0">
+      </div>
+      <div class="step">
+        <label for="punching">6. Punching</label>
+        <input type="number" id="punching" value="0">
+      </div>
+      <div class="step">
+        <label for="pasting">7. Pasting</label>
+        <input type="number" id="pasting" value="0">
+      </div>
     </div>
 
     <button onclick="calculatePrice()">Calculate Total</button>
@@ -132,19 +179,19 @@
       const area = length * width;
 
       const design = parseFloat(document.getElementById("design").value) || 0;
-      const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
       const printRate = parseFloat(document.getElementById("printRate").value) || 0;
       const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
       const die = parseFloat(document.getElementById("die").value) || 0;
       const punching = parseFloat(document.getElementById("punching").value) || 0;
       const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
-      const board = area * boardRate;
-      const print = area * printRate;
-      const lamination = area * laminationRate;
+      // For now board is not calculated with quantity (awaiting your logic)
+      const boardType = document.getElementById("boardType").value;
+      const gsm = document.getElementById("gsm").value;
 
-      const perFileCost = design + board + print + lamination + die + punching + pasting;
-      const total = perFileCost * quantity;
+      const board = 0; // placeholder until logic provided
+
+      const total = design + board + (area * printRate) + (area * laminationRate) + die + punching + pasting;
 
       document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
     }
