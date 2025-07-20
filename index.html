@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hospital File Quotation</title>
   <style>
-    /* Your original styles unchanged */
+    /* [CSS unchanged from previous version] */
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
@@ -243,7 +243,7 @@
 <script>
 let boardDataGlobal = [];
 let bestSizeGlobal = "";
-let currentBoardData = null; // ✅ Added to track current selected board size
+let currentBoardData = null;
 
 function updateBoardSizes() {
   const boardType = document.getElementById("boardType").value;
@@ -307,7 +307,7 @@ function updateBoardSizes() {
 }
 
 function showBoardQuotation(data) {
-  currentBoardData = data; // ✅ Store current board used
+  currentBoardData = data;
   const boardResult = document.getElementById("boardResult");
   const quantity = parseInt(document.getElementById("quantity").value);
   const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
@@ -328,7 +328,6 @@ function showBoardQuotation(data) {
     }
   });
 
-  // printing logic
   const printingSize = document.getElementById("printingSize").value;
   let basePrice = (printingSize === "13.4x19.8") ? 1900 : 2500;
   let extra = Math.floor((sheets - 1) / 1000) * 1000;
@@ -356,8 +355,13 @@ function calculatePrice() {
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
 
-// ✅ ONLY FIX YOU ASKED FOR
+// ✅ Fix: Recalculate board cost if boardRate changes
 document.getElementById('boardRate').addEventListener('input', () => {
+  if (currentBoardData) showBoardQuotation(currentBoardData);
+});
+
+// ✅ Fix: Recalculate printing cost if printing size changes
+document.getElementById('printingSize').addEventListener('change', () => {
   if (currentBoardData) showBoardQuotation(currentBoardData);
 });
 </script>
