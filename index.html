@@ -241,7 +241,7 @@
 let boardDataGlobal = [];
 let bestSizeGlobal = "";
 
-function updateBoardSizes() {
+function updateBoardSizes() {.
   const boardType = document.getElementById("boardType").value;
   const sizePreview = document.getElementById("sizePreview");
   sizePreview.innerHTML = "";
@@ -333,46 +333,108 @@ function updatePrintingPreview() {
   const printingSizePreview = document.getElementById("printingSizePreview");
   printingSizePreview.innerHTML = "";
 
-  if (!fileW || !fileH || !selected || !quantity) return;
+  if (!fileW || !fileH || !quantity) return;
 
-  const [pW, pH] = selected.split("x").map(parseFloat);
-  const usableW = pW - 0.5;
-  const usableH = pH - 0.5;
-  const fits = (fileW <= usableW && fileH <= usableH) || (fileH <= usableW && fileW <= usableH);
-  const boardResult = document.getElementById("boardResult").innerText;
-  const sheetsMatch = boardResult.match(/Total Sheets Needed: <b>(\d+)<\/b>/);
+  const machineSizes = [
+    "19x26", "15x20", "18x23", "22x28", "13.4x19.8"
+  ];
+
+  let bestFitCount = 0;
+  let bestMachine = "";
+
+  const boardResultText = document.getElementById("boardResult").innerText;
+  const sheetsMatch = boardResultText.match(/Total Sheets Needed: <b>(\d+)<\/b>/);
   const sheets = sheetsMatch ? parseInt(sheetsMatch[1]) : 0;
 
-  let basePrice = selected === "13.4x19.8" ? 1900 : 2500;
+  machineSizes.forEach(machine => {
+    const [mW, mH] = machine.split("x").map(parseFloat);
+    const usableW = mW - 0.5;
+    const usableH = mH - 0.5;
+
+    let fit1 = Math.floor(usableW / fileW) * Math.floor(usableH / fileH);
+    let fit2 = Math.floor(usableW / fileH) * Math.floor(usableH / fileW);
+    let fitCount = Math.max(fit1, fit2);
+
+    if (fitCount > bestFitCount) {
+      bestFitCount = fitCount;
+      bestMachine = machine;
+    }
+  });
+
+  machineSizes.forEach(machine => {
+    const [mW, mH] = machine.split("x").map(parseFloat);
+    const usableW = mW - 0.5;
+    const usableH = mH - 0.5;
+
+    let fit1 = Math.floor(usableW / fileW) * Math.floor(usableH / fileH);
+    let fit2 = Math.floor(usableW / fileH) * Math.floor(usableH / fileW);
+    let fitCount = Math.max(fit1, fit2);
+
+    const card = document.createElement("div");
+    card.className = "size-card";
+    if (machine === bestMachine) card.classList.add("best");
+    if (machine === selected) card.classList.add("selected");
+
+    if (fitCount === 0) {
+      card.style.borderColor = "red";
+      card.style.background = "#ffe6e6";
+    }
+
+    card.innerHTML = `<strong>${machine}</strong><br>`;
+
+    for (let i = 0; i < fitCount; i++) {
+      const dot = document.createElement("div");
+      dot.className = "mini-box";
+      card.appendChild(dot);
+    }
+
+    const basePrice = machine === "13.4x19.8" ? 1900 : 2500;
+    let finalPrice = basePrice;
+    if (sheets > 3000) {
+      const extra = Math.floor((sheets - 1) / 1000) * 1000;
+      finalPrice += extra;
+    }
+
+    const info = document.createElement("div");
+    info.className = "fit-count";
+    info.innerHTML = `
+      Files Fit: ${fitCount}<br>
+      Usable: ${usableW.toFixed(1)} x ${usableH.toFixed(1)}<br>
+      ${fitCount === 0 ? "<b style='color:red;'>File too large</b><br>" : ""}
+      Sheets: ${sheets}<br>
+      Printing Cost: ₹${finalPrice}
+    `;
+    card.appendChild(info);
+
+    card.onclick = () => {
+      document.getElementById("printingSize").value = machine;
+      updatePrintingPreview();
+    };
+
+    printingSizePreview.appendChild(card);
+  });
+
+  // Update selected machine's price in the box
+  const [selW, selH] = selected.split("x").map(parseFloat);
+  const selUsableW = selW - 0.5;
+  const selUsableH = selH - 0.5;
+
+  const fits = (fileW <= selUsableW && fileH <= selUsableH) || (fileH <= selUsableW && fileW <= selUsableH);
+  const basePrice = selected === "13.4x19.8" ? 1900 : 2500;
+  let finalPrice = basePrice;
   if (sheets > 3000) {
     const extra = Math.floor((sheets - 1) / 1000) * 1000;
-    basePrice += extra;
+    finalPrice += extra;
   }
-
-  const previewCard = document.createElement("div");
-  previewCard.className = "size-card selected";
-  previewCard.innerHTML = `<strong>${selected}</strong><br>
-    Usable Area: ${usableW.toFixed(1)} x ${usableH.toFixed(1)}<br>
-    File Size: ${fileW} x ${fileH}<br>`;
-
-  if (!fits) {
-    previewCard.style.borderColor = "red";
-    previewCard.style.background = "#ffe6e6";
-    previewCard.innerHTML += `<b style="color:red;">File too large for this machine</b>`;
-  } else {
-    previewCard.innerHTML += `Sheets: <b>${sheets}</b><br>Printing Cost: ₹<b>${basePrice}</b>`;
-  }
-
-  printingSizePreview.appendChild(previewCard);
 
   document.getElementById("printingResult").innerHTML = `
     <strong>Printing Quotation:</strong><br>
     Machine Size: <b>${selected}</b><br>
-    Usable Area (with gripper): ${usableW} x ${usableH}<br>
+    Usable Area: ${selUsableW.toFixed(1)} x ${selUsableH.toFixed(1)}<br>
     File Size: ${fileW} x ${fileH}<br>
-    ${!fits ? `<span style="color:red;">File too large for printing</span><br>` : ""}
+    ${!fits ? "<span style='color:red;'>File too large for this machine</span><br>" : ""}
     Sheets: <b>${sheets}</b><br>
-    Printing Cost: ₹<b>${basePrice}</b>
+    Printing Cost: ₹<b>${finalPrice}</b>
   `;
 }
 
