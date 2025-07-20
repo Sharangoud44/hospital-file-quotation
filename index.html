@@ -264,7 +264,7 @@ function updateBoardSizes() {
 
   const sizeDropdown = document.getElementById("size");
   sizeDropdown.innerHTML = '<option value="">Select Size</option>';
-  sizes.forEach(s => sizeDropdown.innerHTML += <option value="${s}">${s}</option>);
+  sizes.forEach(s => sizeDropdown.innerHTML += `<option value="${s}">${s}</option>`);
 
   let bestWastage = Infinity;
   boardDataGlobal = sizes.map(size => {
@@ -289,7 +289,7 @@ function updateBoardSizes() {
 
     card.onclick = () => showBoardQuotation(data);
 
-    card.innerHTML = <strong>${data.size}</strong><br>;
+    card.innerHTML = `<strong>${data.size}</strong><br>`;
     for (let i = 0; i < data.fitCount; i++) {
       const dot = document.createElement("div");
       dot.className = "mini-box";
@@ -297,7 +297,7 @@ function updateBoardSizes() {
     }
     const text = document.createElement("div");
     text.className = "fit-count";
-    text.innerHTML = ${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in² + (data.size === bestSizeGlobal ? " ✅ Best Fit" : "");
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestSizeGlobal ? " ✅ Best Fit" : "");
     card.appendChild(text);
     sizePreview.appendChild(card);
   });
@@ -368,7 +368,7 @@ function updatePrintingSizes() {
       updatePrintingQuotation();
     };
 
-    card.innerHTML = <strong>${data.size}</strong><br>;
+    card.innerHTML = `<strong>${data.size}</strong><br>`;
     for (let i = 0; i < data.fitCount; i++) {
       const dot = document.createElement("div");
       dot.className = "mini-box";
@@ -376,7 +376,7 @@ function updatePrintingSizes() {
     }
     const text = document.createElement("div");
     text.className = "fit-count";
-    text.innerHTML = ${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in² + (data.size === bestFit ? " ✅ Best Fit" : "");
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestFit ? " ✅ Best Fit" : "");
     card.appendChild(text);
     preview.appendChild(card);
   });
@@ -397,7 +397,7 @@ function updatePrintingQuotation() {
 
   const [mW, mH] = printingSize.split("x").map(parseFloat);
   const isTooSmall = fileW > mW || fileH > mH;
-  const warningText = isTooSmall ? <div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div> : "";
+  const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
     Machine Size: <b>${printingSize}</b><br>
@@ -419,7 +419,7 @@ function calculatePrice() {
   const printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
 
   const total = design + board + printing + laminationRate + die + punching + pasting;
-  document.getElementById("total").textContent = Total: ₹${total.toFixed(2)};
+  document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
 
 document.getElementById("boardRate").addEventListener("input", () => {
