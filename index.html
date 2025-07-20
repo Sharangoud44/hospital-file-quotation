@@ -10,7 +10,7 @@
       padding: 20px;
       max-width: 700px;
       margin: auto;
-      background: #f9f9f9;
+      background-color: #f9f9f9;
     }
     h2 {
       text-align: center;
@@ -79,6 +79,7 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      align-items: flex-start;
       flex-direction: column;
     }
     .gsm-select, .size-select {
@@ -98,6 +99,7 @@
       min-width: 100px;
       text-align: center;
       font-size: 12px;
+      position: relative;
       cursor: pointer;
     }
     .size-card.best {
@@ -134,121 +136,123 @@
   </style>
 </head>
 <body>
-<div class="box">
-  <h2>Hospital File Quotation</h2>
-  <div class="row">
-    <div class="field">
-      <label for="unit">Unit</label>
-      <select id="unit">
-        <option value="inch">Inches</option>
-        <option value="cm">Centimeters</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="length">Length</label>
-      <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes(); updatePrintingPreview()" />
-    </div>
-    <div class="field">
-      <label for="width">Width</label>
-      <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes(); updatePrintingPreview()" />
-    </div>
-    <div class="field">
-      <label for="quantity">Quantity</label>
-      <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes(); updatePrintingPreview()" />
-    </div>
-  </div>
-
-  <div class="steps">
-    <div class="step">
-      <label for="design">1. Design</label>
-      <input type="number" id="design" value="0" />
+  <div class="box">
+    <h2>Hospital File Quotation</h2>
+    <div class="row">
+      <div class="field">
+        <label for="unit">Unit</label>
+        <select id="unit">
+          <option value="inch">Inches</option>
+          <option value="cm">Centimeters</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="length">Length</label>
+        <input type="number" id="length" placeholder="Length" oninput="updateBoardSizes(); updatePrintingSizes();">
+      </div>
+      <div class="field">
+        <label for="width">Width</label>
+        <input type="number" id="width" placeholder="Width" oninput="updateBoardSizes(); updatePrintingSizes();">
+      </div>
+      <div class="field">
+        <label for="quantity">Quantity</label>
+        <input type="number" id="quantity" placeholder="Qty" value="1" oninput="updateBoardSizes(); updatePrintingSizes();">
+      </div>
     </div>
 
-    <div class="step">
-      <label>2. Board</label>
-      <div class="step-group">
-        <div>
-          <select id="boardType" onchange="updateBoardSizes()">
-            <option value="">Select</option>
-            <option value="Art Card">Art Card</option>
-            <option value="DuplexBoard">DuplexBoard</option>
-            <option value="Cyber XL">Cyber XL</option>
-          </select>
-        </div>
-        <div>
-          <select id="gsm" class="gsm-select">
-            <option value="200">200 GSM</option>
-            <option value="250">250 GSM</option>
-            <option value="300">300 GSM</option>
-            <option value="350">350 GSM</option>
-            <option value="400">400 GSM</option>
-          </select>
-        </div>
-        <div>
-          <select id="size" class="size-select">
-            <option value="">Select Size</option>
-          </select>
-        </div>
+    <div class="steps">
+      <div class="step">
+        <label for="design">1. Design</label>
+        <input type="number" id="design" value="0">
       </div>
 
-      <div id="sizePreview" class="size-preview"></div>
+      <div class="step">
+        <label>2. Board</label>
+        <div class="step-group">
+          <div>
+            <select id="boardType" onchange="updateBoardSizes()">
+              <option value="">Select</option>
+              <option value="Art Card">Art Card</option>
+              <option value="DuplexBoard">DuplexBoard</option>
+              <option value="Cyber XL">Cyber XL</option>
+            </select>
+          </div>
 
-      <div class="board-rate-box">
-        <label for="boardRate">Board Rate Per Sheet (₹)</label>
-        <input type="number" id="boardRate" value="0" placeholder="Enter rate" oninput="updateBoardSizes()" />
+          <div>
+            <select id="gsm" class="gsm-select">
+              <option value="200">200 GSM</option>
+              <option value="250">250 GSM</option>
+              <option value="300">300 GSM</option>
+              <option value="350">350 GSM</option>
+              <option value="400">400 GSM</option>
+            </select>
+          </div>
+
+          <div>
+            <select id="size" class="size-select">
+              <option value="">Select Size</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="sizePreview" class="size-preview"></div>
+
+        <div class="board-rate-box">
+          <label for="boardRate">Board Rate Per Sheet (₹)</label>
+          <input type="number" id="boardRate" value="0">
+        </div>
+
+        <div id="boardResult"></div>
       </div>
 
-      <div id="boardResult"></div>
-    </div>
-    <div class="step">
-      <label>3. Printing</label>
+      <div class="step">
+        <label>3. Printing</label>
+        <select id="printingSize" onchange="updatePrintingQuotation()">
+          <option value="19x26">19 X 26</option>
+          <option value="15x20">15 X 20</option>
+          <option value="18x23">18 X 23</option>
+          <option value="22x28">22 X 28</option>
+          <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
+        </select>
+        <div id="printingPreview" class="size-preview"></div>
+        <div id="printingResult"></div>
+      </div>
 
-      <select id="printingSize" onchange="updatePrintingPreview()">
-        <option value="19x26">19 X 26</option>
-        <option value="15x20">15 X 20</option>
-        <option value="18x23">18 X 23</option>
-        <option value="22x28">22 X 28</option>
-        <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
-      </select>
-
-      <div id="printingSizePreview" class="size-preview"></div>
-
-      <div id="printingResult"></div>
+      <div class="step">
+        <label for="laminationRate">4. Lamination</label>
+        <input type="number" id="laminationRate" value="0">
+      </div>
+      <div class="step">
+        <label for="die">5. Die</label>
+        <input type="number" id="die" value="0">
+      </div>
+      <div class="step">
+        <label for="punching">6. Punching</label>
+        <input type="number" id="punching" value="0">
+      </div>
+      <div class="step">
+        <label for="pasting">7. Pasting</label>
+        <input type="number" id="pasting" value="0">
+      </div>
     </div>
 
-    <div class="step">
-      <label for="laminationRate">4. Lamination</label>
-      <input type="number" id="laminationRate" value="0">
-    </div>
-    <div class="step">
-      <label for="die">5. Die</label>
-      <input type="number" id="die" value="0">
-    </div>
-    <div class="step">
-      <label for="punching">6. Punching</label>
-      <input type="number" id="punching" value="0">
-    </div>
-    <div class="step">
-      <label for="pasting">7. Pasting</label>
-      <input type="number" id="pasting" value="0">
-    </div>
+    <button onclick="calculatePrice()">Calculate Total</button>
+    <div class="total" id="total">Total: ₹0.00</div>
   </div>
 
-  <button onclick="calculatePrice()">Calculate Total</button>
-  <div class="total" id="total">Total: ₹0.00</div>
-</div>
 <script>
+let currentBoardData = null;
 let boardDataGlobal = [];
-let bestSizeGlobal = "";
+let printingDataGlobal = [];
 
-function updateBoardSizes() {.
+function updateBoardSizes() {
   const boardType = document.getElementById("boardType").value;
   const sizePreview = document.getElementById("sizePreview");
   sizePreview.innerHTML = "";
 
-  let fileW = parseFloat(document.getElementById("width").value);
-  let fileH = parseFloat(document.getElementById("length").value);
-  let quantity = parseInt(document.getElementById("quantity").value);
+  const fileW = parseFloat(document.getElementById("width").value);
+  const fileH = parseFloat(document.getElementById("length").value);
+  const quantity = parseInt(document.getElementById("quantity").value);
   if (!fileW || !fileH || !quantity) return;
 
   let sizes = [];
@@ -301,14 +305,15 @@ function updateBoardSizes() {.
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
 }
+
 function showBoardQuotation(data) {
-  const boardResult = document.getElementById("boardResult");
+  currentBoardData = data;
   const quantity = parseInt(document.getElementById("quantity").value);
   const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
   const sheets = Math.ceil(quantity / data.fitCount);
   const boardCost = sheets * boardRate;
 
-  boardResult.innerHTML = `<strong>Board Quotation:</strong><br>
+  document.getElementById("boardResult").innerHTML = `<strong>Board Quotation:</strong><br>
     Selected Size: <b>${data.size}</b><br>
     Files per Sheet: <b>${data.fitCount}</b><br>
     Quantity Required: <b>${quantity}</b><br>
@@ -322,120 +327,82 @@ function showBoardQuotation(data) {
     }
   });
 
-  updatePrintingPreview(); // Refresh printing quote when board updates
+  updatePrintingQuotation();
 }
 
-function updatePrintingPreview() {
+function updatePrintingSizes() {
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
-  const quantity = parseInt(document.getElementById("quantity").value);
-  const selected = document.getElementById("printingSize").value;
-  const printingSizePreview = document.getElementById("printingSizePreview");
-  printingSizePreview.innerHTML = "";
+  if (!fileW || !fileH) return;
 
-  if (!fileW || !fileH || !quantity) return;
+  const sizes = ["19x26", "15x20", "18x23", "22x28", "13.4x19.8"];
+  const preview = document.getElementById("printingPreview");
+  preview.innerHTML = "";
 
-  const machineSizes = [
-    "19x26", "15x20", "18x23", "22x28", "13.4x19.8"
-  ];
-
+  let bestFit = null;
   let bestFitCount = 0;
-  let bestMachine = "";
 
-  const boardResultText = document.getElementById("boardResult").innerText;
-  const sheetsMatch = boardResultText.match(/Total Sheets Needed: <b>(\d+)<\/b>/);
-  const sheets = sheetsMatch ? parseInt(sheetsMatch[1]) : 0;
-
-  machineSizes.forEach(machine => {
-    const [mW, mH] = machine.split("x").map(parseFloat);
-    const usableW = mW - 0.5;
-    const usableH = mH - 0.5;
-
-    let fit1 = Math.floor(usableW / fileW) * Math.floor(usableH / fileH);
-    let fit2 = Math.floor(usableW / fileH) * Math.floor(usableH / fileW);
-    let fitCount = Math.max(fit1, fit2);
+  printingDataGlobal = sizes.map(size => {
+    const [w, h] = size.split("x").map(parseFloat);
+    const fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
+    const fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
+    const fitCount = Math.max(fit1, fit2);
+    const used = fitCount * fileW * fileH;
+    const waste = w * h - used;
 
     if (fitCount > bestFitCount) {
+      bestFit = size;
       bestFitCount = fitCount;
-      bestMachine = machine;
     }
+
+    return { size, width: w, height: h, fitCount, waste };
   });
 
-  machineSizes.forEach(machine => {
-    const [mW, mH] = machine.split("x").map(parseFloat);
-    const usableW = mW - 0.5;
-    const usableH = mH - 0.5;
-
-    let fit1 = Math.floor(usableW / fileW) * Math.floor(usableH / fileH);
-    let fit2 = Math.floor(usableW / fileH) * Math.floor(usableH / fileW);
-    let fitCount = Math.max(fit1, fit2);
-
+  printingDataGlobal.forEach(data => {
     const card = document.createElement("div");
     card.className = "size-card";
-    if (machine === bestMachine) card.classList.add("best");
-    if (machine === selected) card.classList.add("selected");
+    if (data.size === bestFit) card.classList.add("best");
 
-    if (fitCount === 0) {
-      card.style.borderColor = "red";
-      card.style.background = "#ffe6e6";
-    }
+    card.onclick = () => {
+      document.getElementById("printingSize").value = data.size;
+      updatePrintingQuotation();
+    };
 
-    card.innerHTML = `<strong>${machine}</strong><br>`;
-
-    for (let i = 0; i < fitCount; i++) {
+    card.innerHTML = `<strong>${data.size}</strong><br>`;
+    for (let i = 0; i < data.fitCount; i++) {
       const dot = document.createElement("div");
       dot.className = "mini-box";
       card.appendChild(dot);
     }
-
-    const basePrice = machine === "13.4x19.8" ? 1900 : 2500;
-    let finalPrice = basePrice;
-    if (sheets > 3000) {
-      const extra = Math.floor((sheets - 1) / 1000) * 1000;
-      finalPrice += extra;
-    }
-
-    const info = document.createElement("div");
-    info.className = "fit-count";
-    info.innerHTML = `
-      Files Fit: ${fitCount}<br>
-      Usable: ${usableW.toFixed(1)} x ${usableH.toFixed(1)}<br>
-      ${fitCount === 0 ? "<b style='color:red;'>File too large</b><br>" : ""}
-      Sheets: ${sheets}<br>
-      Printing Cost: ₹${finalPrice}
-    `;
-    card.appendChild(info);
-
-    card.onclick = () => {
-      document.getElementById("printingSize").value = machine;
-      updatePrintingPreview();
-    };
-
-    printingSizePreview.appendChild(card);
+    const text = document.createElement("div");
+    text.className = "fit-count";
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestFit ? " ✅ Best Fit" : "");
+    card.appendChild(text);
+    preview.appendChild(card);
   });
+}
 
-  // Update selected machine's price in the box
-  const [selW, selH] = selected.split("x").map(parseFloat);
-  const selUsableW = selW - 0.5;
-  const selUsableH = selH - 0.5;
+function updatePrintingQuotation() {
+  const printingSize = document.getElementById("printingSize").value;
+  const quantity = parseInt(document.getElementById("quantity").value);
+  const fileW = parseFloat(document.getElementById("width").value);
+  const fileH = parseFloat(document.getElementById("length").value);
 
-  const fits = (fileW <= selUsableW && fileH <= selUsableH) || (fileH <= selUsableW && fileW <= selUsableH);
-  const basePrice = selected === "13.4x19.8" ? 1900 : 2500;
-  let finalPrice = basePrice;
-  if (sheets > 3000) {
-    const extra = Math.floor((sheets - 1) / 1000) * 1000;
-    finalPrice += extra;
-  }
+  if (!currentBoardData || !quantity || !fileW || !fileH) return;
 
-  document.getElementById("printingResult").innerHTML = `
-    <strong>Printing Quotation:</strong><br>
-    Machine Size: <b>${selected}</b><br>
-    Usable Area: ${selUsableW.toFixed(1)} x ${selUsableH.toFixed(1)}<br>
-    File Size: ${fileW} x ${fileH}<br>
-    ${!fits ? "<span style='color:red;'>File too large for this machine</span><br>" : ""}
+  const sheets = Math.ceil(quantity / currentBoardData.fitCount);
+  let basePrice = (printingSize === "13.4x19.8") ? 1900 : 2500;
+  let extra = Math.floor((sheets - 1) / 1000) * 1000;
+  if (sheets > 3000) basePrice += extra;
+
+  const [mW, mH] = printingSize.split("x").map(parseFloat);
+  const isTooSmall = fileW > mW || fileH > mH;
+  const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
+
+  document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
+    Machine Size: <b>${printingSize}</b><br>
     Sheets: <b>${sheets}</b><br>
-    Printing Cost: ₹<b>${finalPrice}</b>
-  `;
+    Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
 
 function calculatePrice() {
@@ -454,6 +421,11 @@ function calculatePrice() {
   const total = design + board + printing + laminationRate + die + punching + pasting;
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
+
+document.getElementById("boardRate").addEventListener("input", () => {
+  if (currentBoardData) showBoardQuotation(currentBoardData);
+});
+document.getElementById("printingSize").addEventListener("change", updatePrintingQuotation);
 </script>
 </body>
 </html>
