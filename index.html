@@ -12,7 +12,9 @@
       margin: auto;
       background-color: #f9f9f9;
     }
-    h2 { text-align: center; }
+    h2 {
+      text-align: center;
+    }
     .row {
       display: flex;
       gap: 10px;
@@ -128,7 +130,9 @@
       font-size: 14px;
       line-height: 1.5;
     }
-    .board-rate-box { margin-top: 10px; }
+    .board-rate-box {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -173,6 +177,7 @@
               <option value="Cyber XL">Cyber XL</option>
             </select>
           </div>
+
           <div>
             <select id="gsm" class="gsm-select">
               <option value="200">200 GSM</option>
@@ -182,17 +187,21 @@
               <option value="400">400 GSM</option>
             </select>
           </div>
+
           <div>
             <select id="size" class="size-select">
               <option value="">Select Size</option>
             </select>
           </div>
         </div>
+
         <div id="sizePreview" class="size-preview"></div>
+
         <div class="board-rate-box">
           <label for="boardRate">Board Rate Per Sheet (₹)</label>
           <input type="number" id="boardRate" value="0">
         </div>
+
         <div id="boardResult"></div>
       </div>
 
@@ -321,6 +330,58 @@ function showBoardQuotation(data) {
   updatePrintingQuotation();
 }
 
+function updatePrintingSizes() {
+  const fileW = parseFloat(document.getElementById("width").value);
+  const fileH = parseFloat(document.getElementById("length").value);
+  if (!fileW || !fileH) return;
+
+  const sizes = ["19x26", "15x20", "18x23", "22x28", "13.4x19.8"];
+  const preview = document.getElementById("printingPreview");
+  preview.innerHTML = "";
+
+  let bestFit = null;
+  let bestFitCount = 0;
+
+  printingDataGlobal = sizes.map(size => {
+    const [w, h] = size.split("x").map(parseFloat);
+    const fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
+    const fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
+    const fitCount = Math.max(fit1, fit2);
+    const used = fitCount * fileW * fileH;
+    const waste = w * h - used;
+
+    if (fitCount > bestFitCount) {
+      bestFit = size;
+      bestFitCount = fitCount;
+    }
+
+    return { size, width: w, height: h, fitCount, waste };
+  });
+
+  printingDataGlobal.forEach(data => {
+    const card = document.createElement("div");
+    card.className = "size-card";
+    if (data.size === bestFit) card.classList.add("best");
+
+    card.onclick = () => {
+      document.getElementById("printingSize").value = data.size;
+      updatePrintingQuotation();
+    };
+
+    card.innerHTML = `<strong>${data.size}</strong><br>`;
+    for (let i = 0; i < data.fitCount; i++) {
+      const dot = document.createElement("div");
+      dot.className = "mini-box";
+      card.appendChild(dot);
+    }
+    const text = document.createElement("div");
+    text.className = "fit-count";
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestFit ? " ✅ Best Fit" : "");
+    card.appendChild(text);
+    preview.appendChild(card);
+  });
+}
+
 function updatePrintingQuotation() {
   const printingSize = document.getElementById("printingSize").value;
   const quantity = parseInt(document.getElementById("quantity").value);
@@ -329,40 +390,18 @@ function updatePrintingQuotation() {
 
   if (!currentBoardData || !quantity || !fileW || !fileH) return;
 
-  const [mW, mH] = printingSize.split("x").map(parseFloat);
-  const boardW = currentBoardData.width;
-  const boardH = currentBoardData.height;
-
-  let matched = false;
-  let matchedUps = 0;
-  let splitNote = "";
-
-  for (let split = 1; split <= 4; split++) {
-    const partW = boardW / (split % 2 === 0 ? 2 : 1);
-    const partH = boardH / (split > 2 ? 2 : 1);
-
-    const fit1 = Math.floor(mW / partW) * Math.floor(mH / partH);
-    const fit2 = Math.floor(mW / partH) * Math.floor(mH / partW);
-    const totalFit = Math.max(fit1, fit2);
-
-    if (totalFit > 0 && totalFit > matchedUps) {
-      matched = true;
-      matchedUps = totalFit;
-      splitNote = split === 1 ? 'Full Board' : split === 2 ? 'Half Split' : 'Quarter Split';
-    }
-  }
-
+  const sheets = Math.ceil(quantity / currentBoardData.fitCount);
   let basePrice = (printingSize === "13.4x19.8") ? 1900 : 2500;
-  let sheets = Math.ceil(quantity / currentBoardData.fitCount);
   let extra = Math.floor((sheets - 1) / 1000) * 1000;
   if (sheets > 3000) basePrice += extra;
 
-  const warningText = matched ? "" : `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`;
+  const [mW, mH] = printingSize.split("x").map(parseFloat);
+  const isTooSmall = fileW > mW || fileH > mH;
+  const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
     Machine Size: <b>${printingSize}</b><br>
     Sheets: <b>${sheets}</b><br>
-    Fit Method: <b>${splitNote || 'N/A'}</b><br>
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
 
