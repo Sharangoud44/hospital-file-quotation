@@ -245,6 +245,7 @@ let currentBoardData = null;
 let boardDataGlobal = [];
 let printingDataGlobal = [];
 
+  
 function updateBoardSizes() {
   const boardType = document.getElementById("boardType").value;
   const sizePreview = document.getElementById("sizePreview");
@@ -267,8 +268,13 @@ function updateBoardSizes() {
   sizes.forEach(s => sizeDropdown.innerHTML += `<option value="${s}">${s}</option>`);
 
   let bestWastage = Infinity;
+  let bestSizeGlobal = null;
+
   boardDataGlobal = sizes.map(size => {
-    const [h, w] = size.split(" X ").map(parseFloat);
+    const [hRaw, wRaw] = size.split(" X ").map(parseFloat); // 👈 original values
+    const h = hRaw - 0.5; // 👈 gripper margin
+    const w = wRaw - 0.5; // 👈 gripper margin
+
     let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
     let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
     let fitCount = Math.max(fit1, fit2);
@@ -279,7 +285,8 @@ function updateBoardSizes() {
       bestWastage = waste;
       bestSizeGlobal = size;
     }
-    return { size, width: w, height: h, fitCount, waste };
+
+    return { size, width: wRaw, height: hRaw, fitCount, waste };
   });
 
   boardDataGlobal.forEach(data => {
