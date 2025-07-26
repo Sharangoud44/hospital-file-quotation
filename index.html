@@ -171,11 +171,13 @@
         <div class="step-group">
           <div>
             <select id="boardType" onchange="updateBoardSizes()">
-              <option value="">Select</option>
-              <option value="Art Card">Art Card</option>
-              <option value="DuplexBoard">DuplexBoard</option>
-              <option value="Cyber XL">Cyber XL</option>
-            </select>
+  <option value="">Select</option>
+  <option value="Art Card">Art Card</option>
+  <option value="DuplexBoard">DuplexBoard</option>
+  <option value="Cyber XL">Cyber XL</option>
+  <option value="Maplitho">Maplitho</option> <!-- ✅ Add this line -->
+</select>
+
           </div>
 
           <div>
@@ -289,7 +291,6 @@ function updateBoardSizes() {
     return { size, width: wRaw, height: hRaw, fitCount, waste };
   });
 
-<!-- Full file unchanged except the boardDataGlobal.forEach block below and updates for Maplitho & Art Card sizes -->
 
 boardDataGlobal.forEach(data => {
   const card = document.createElement("div");
@@ -321,6 +322,89 @@ boardDataGlobal.forEach(data => {
   sizePreview.appendChild(card);
 });
 
+// Add Maplitho to board type dropdown
+const boardTypeDropdown = document.getElementById("boardType");
+if (boardTypeDropdown && !Array.from(boardTypeDropdown.options).some(o => o.value === "Maplitho")) {
+  const option = document.createElement("option");
+  option.value = "Maplitho";
+  option.textContent = "Maplitho";
+  boardTypeDropdown.appendChild(option);
+}
+
+function updateBoardSizes() {
+  const boardType = document.getElementById("boardType").value;
+  const sizePreview = document.getElementById("sizePreview");
+  sizePreview.innerHTML = "";
+
+  const fileW = parseFloat(document.getElementById("width").value);
+  const fileH = parseFloat(document.getElementById("length").value);
+  const quantity = parseInt(document.getElementById("quantity").value);
+  if (!fileW || !fileH || !quantity) return;
+
+  let sizes = [];
+  if (boardType === "Art Card") {
+    sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28", "13 X 19"];
+  } else if (boardType === "Cyber XL") {
+    sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
+  } else if (boardType === "Maplitho") {
+    sizes = ["13 X 19"];
+  }
+
+  const sizeDropdown = document.getElementById("size");
+  sizeDropdown.innerHTML = '<option value="">Select Size</option>';
+  sizes.forEach(s => sizeDropdown.innerHTML += `<option value="${s}">${s}</option>`);
+
+  let bestWastage = Infinity;
+  boardDataGlobal = sizes.map(size => {
+    let [h, w] = size.split(" X ").map(parseFloat);
+    w -= 0.5;
+    h -= 0.5;
+    let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
+    let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
+    let fitCount = Math.max(fit1, fit2);
+    let used = fitCount * fileW * fileH;
+    let waste = w * h - used;
+
+    if (waste < bestWastage && fitCount > 0) {
+      bestWastage = waste;
+      bestSizeGlobal = size;
+    }
+    return { size, width: w, height: h, fitCount, waste };
+  });
+
+  boardDataGlobal.forEach(data => {
+    const card = document.createElement("div");
+    card.className = "size-card";
+    if (data.size === bestSizeGlobal) card.classList.add("best");
+
+    card.onclick = () => showBoardQuotation(data);
+
+    card.innerHTML = `<strong>${data.size}</strong><br>`;
+    for (let i = 0; i < data.fitCount; i++) {
+      const dot = document.createElement("div");
+      dot.className = "mini-box";
+      card.appendChild(dot);
+    }
+
+    const text = document.createElement("div");
+    text.className = "fit-count";
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
+
+    const gsm = document.getElementById("gsm").value.replace(" GSM", "");
+    const rateLine = document.createElement("div");
+    rateLine.style.marginTop = "2px";
+    rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
+    text.appendChild(rateLine);
+
+    if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
+    card.appendChild(text);
+    sizePreview.appendChild(card);
+  });
+
+  const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
+  if (bestData) showBoardQuotation(bestData);
+}
+
 function getStaticBoardRate(boardType, size, gsm) {
   const key = `${boardType}-${size}-${gsm}`;
   const rates = {
@@ -331,36 +415,26 @@ function getStaticBoardRate(boardType, size, gsm) {
     "Cyber XL-23 X 30-200": "Rate-14/-",
     "Cyber XL-31.5 X 41.5-200": "Rate-17/-",
     "Cyber XL-25 X 30-200": "Rate-15/-",
-    "Art Card-30 X 40-250": "Rate-20/-",
-    "Art Card-23 X 36-250": "Rate-19/-",
-    "Art Card-25 X 36-250": "Rate-18/-",
-    "Art Card-22 X 28-250": "Rate-17/-",
+    "Art Card-30 X 40-200": "Rate-12/-",
+    "Art Card-23 X 36-200": "Rate-13/-",
+    "Art Card-25 X 36-200": "Rate-14/-",
+    "Art Card-22 X 28-200": "Rate-15/-",
+    "Art Card-13 X 19-200": "Rate-15/-",
 
-    // Maplitho - all GSM - 13 X 19
+    "Art Card-13 X 19-250": "Rate-15/-",
+    "Art Card-13 X 19-300": "Rate-15/-",
+    "Art Card-13 X 19-350": "Rate-15/-",
+    "Art Card-13 X 19-400": "Rate-15/-",
+
     "Maplitho-13 X 19-200": "Rate-15/-",
     "Maplitho-13 X 19-250": "Rate-15/-",
     "Maplitho-13 X 19-300": "Rate-15/-",
     "Maplitho-13 X 19-350": "Rate-15/-",
-    "Maplitho-13 X 19-400": "Rate-15/-",
-
-    // Art Card - new size 13 X 19
-    "Art Card-13 X 19-200": "Rate-15/-",
-    "Art Card-13 X 19-250": "Rate-15/-",
-    "Art Card-13 X 19-300": "Rate-15/-",
-    "Art Card-13 X 19-350": "Rate-15/-",
-    "Art Card-13 X 19-400": "Rate-15/-"
+    "Maplitho-13 X 19-400": "Rate-15/-"
   };
   return rates[key] || "Rate-15/-";
 }
 
-// Inside updateBoardSizes() function, update size list logic:
-if (boardType === "Art Card") {
-  sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28", "13 X 19"];
-} else if (boardType === "Cyber XL") {
-  sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
-} else if (boardType === "Maplitho") {
-  sizes = ["13 X 19"];
-}
 
 
 
