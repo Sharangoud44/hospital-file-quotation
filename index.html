@@ -289,7 +289,9 @@ function updateBoardSizes() {
     return { size, width: wRaw, height: hRaw, fitCount, waste };
   });
 
- boardDataGlobal.forEach(data => {
+<!-- Full file unchanged except the boardDataGlobal.forEach block below and updates for Maplitho & Art Card sizes -->
+
+boardDataGlobal.forEach(data => {
   const card = document.createElement("div");
   card.className = "size-card";
   if (data.size === bestSizeGlobal) card.classList.add("best");
@@ -319,60 +321,47 @@ function updateBoardSizes() {
   sizePreview.appendChild(card);
 });
 
-// 🔁 Trigger board size update when GSM changes
-// Place this near your other event listeners at bottom of <script>
-document.getElementById("gsm").addEventListener("change", updateBoardSizes);
-
-// 📦 Static Rate Mapping Function
 function getStaticBoardRate(boardType, size, gsm) {
   const key = `${boardType}-${size}-${gsm}`;
   const rates = {
-    // Cyber XL rates
     "Cyber XL-22 X 28-200": "Rate-14/-",
-    "Cyber XL-22 X 28-250": "Rate-15/-",
-    "Cyber XL-22 X 28-300": "Rate-16/-",
-    "Cyber XL-22 X 28-350": "Rate-17/-",
-    "Cyber XL-22 X 28-400": "Rate-18/-",
-
     "Cyber XL-23 X 36-200": "Rate-15/-",
-    "Cyber XL-23 X 36-250": "Rate-16/-",
-    "Cyber XL-23 X 36-300": "Rate-17/-",
-    "Cyber XL-23 X 36-350": "Rate-18/-",
-    "Cyber XL-23 X 36-400": "Rate-19/-",
-
     "Cyber XL-25 X 36-200": "Rate-16/-",
-    "Cyber XL-25 X 36-250": "Rate-17/-",
-    "Cyber XL-25 X 36-300": "Rate-18/-",
-    "Cyber XL-25 X 36-350": "Rate-19/-",
-    "Cyber XL-25 X 36-400": "Rate-20/-",
-
-    // Art Card rates
-    "Art Card-30 X 40-200": "Rate-16/-",
-    "Art Card-30 X 40-250": "Rate-17/-",
-    "Art Card-30 X 40-300": "Rate-18/-",
-    "Art Card-30 X 40-350": "Rate-19/-",
-    "Art Card-30 X 40-400": "Rate-20/-",
-
-    "Art Card-23 X 36-200": "Rate-15/-",
-    "Art Card-23 X 36-250": "Rate-16/-",
-    "Art Card-23 X 36-300": "Rate-17/-",
-    "Art Card-23 X 36-350": "Rate-18/-",
-    "Art Card-23 X 36-400": "Rate-19/-",
-
-    "Art Card-25 X 36-200": "Rate-17/-",
+    "Cyber XL-20 X 30-200": "Rate-13/-",
+    "Cyber XL-23 X 30-200": "Rate-14/-",
+    "Cyber XL-31.5 X 41.5-200": "Rate-17/-",
+    "Cyber XL-25 X 30-200": "Rate-15/-",
+    "Art Card-30 X 40-250": "Rate-20/-",
+    "Art Card-23 X 36-250": "Rate-19/-",
     "Art Card-25 X 36-250": "Rate-18/-",
-    "Art Card-25 X 36-300": "Rate-19/-",
-    "Art Card-25 X 36-350": "Rate-20/-",
-    "Art Card-25 X 36-400": "Rate-21/-",
+    "Art Card-22 X 28-250": "Rate-17/-",
 
-    "Art Card-22 X 28-200": "Rate-14/-",
-    "Art Card-22 X 28-250": "Rate-15/-",
-    "Art Card-22 X 28-300": "Rate-16/-",
-    "Art Card-22 X 28-350": "Rate-17/-",
-    "Art Card-22 X 28-400": "Rate-18/-"
+    // Maplitho - all GSM - 13 X 19
+    "Maplitho-13 X 19-200": "Rate-15/-",
+    "Maplitho-13 X 19-250": "Rate-15/-",
+    "Maplitho-13 X 19-300": "Rate-15/-",
+    "Maplitho-13 X 19-350": "Rate-15/-",
+    "Maplitho-13 X 19-400": "Rate-15/-",
+
+    // Art Card - new size 13 X 19
+    "Art Card-13 X 19-200": "Rate-15/-",
+    "Art Card-13 X 19-250": "Rate-15/-",
+    "Art Card-13 X 19-300": "Rate-15/-",
+    "Art Card-13 X 19-350": "Rate-15/-",
+    "Art Card-13 X 19-400": "Rate-15/-"
   };
   return rates[key] || "Rate-15/-";
 }
+
+// Inside updateBoardSizes() function, update size list logic:
+if (boardType === "Art Card") {
+  sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28", "13 X 19"];
+} else if (boardType === "Cyber XL") {
+  sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
+} else if (boardType === "Maplitho") {
+  sizes = ["13 X 19"];
+}
+
 
 
 
