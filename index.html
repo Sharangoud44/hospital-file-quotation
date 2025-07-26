@@ -142,29 +142,30 @@
   }
 
   /* Virtual Cut Lines */
-  .cut-line-visual {
-    position: absolute;
-    top: 8px;
-    bottom: 8px;
-    width: 2px;
-    background: blue;
-    border-left: 2px dashed blue;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-  }
-
   .cut-line-horizontal {
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    height: 2px;
-    background: blue;
-    border-top: 2px dashed blue;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-  }
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: blue;
+  border-top: 2px dashed blue;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.cut-line-visual {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: blue;
+  border-left: 2px dashed blue;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
 </style>
 
 </head>
@@ -457,6 +458,19 @@ printingDataGlobal.forEach(data => {
   card.className = "size-card";
 
   if (data.size === bestFit) card.classList.add("best");
+  
+  //  Add visual dashed cut line
+  if (currentBoardData) {
+    if (currentBoardData.height > data.height && currentBoardData.height / 2 <= data.height) {
+      const horizontalLine = document.createElement("div");
+      horizontalLine.className = "cut-line-horizontal";
+      card.appendChild(horizontalLine);
+    } else if (currentBoardData.width > data.width && currentBoardData.width / 2 <= data.width) {
+      const verticalLine = document.createElement("div");
+      verticalLine.className = "cut-line-visual";
+      card.appendChild(verticalLine);
+    }
+  }
 
   const board = currentBoardData;
   const boardW = board?.width || 0;
