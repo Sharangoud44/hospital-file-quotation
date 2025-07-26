@@ -5,169 +5,168 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hospital File Quotation</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 700px;
-      margin: auto;
-      background-color: #f9f9f9;
-    }
-    h2 {
-      text-align: center;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    .field {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-width: 100px;
-      margin-bottom: 10px;
-    }
-    label {
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-    input, select, button {
-      padding: 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      margin-top: 15px;
-      background-color: #28a745;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .total {
-      margin-top: 20px;
-      font-size: 22px;
-      font-weight: bold;
-      text-align: center;
-      color: green;
-    }
-    .box {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .steps {
-      margin-top: 20px;
-      font-size: 16px;
-      line-height: 1.6;
-    }
-    .steps .step {
-      margin-bottom: 15px;
-      display: flex;
-      flex-direction: column;
-    }
-    .steps label {
-      font-weight: bold;
-      font-size: 15px;
-      margin-bottom: 5px;
-    }
-    .step-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      flex-direction: column;
-    }
-    .gsm-select, .size-select {
-      min-width: 150px;
-    }
-    .size-preview {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 10px 0;
-    }
-    .size-card {
-      border: 2px solid #ccc;
-      border-radius: 5px;
-      padding: 8px 10px;
-      background: #f1f1f1;
-      min-width: 100px;
-      text-align: center;
-      font-size: 12px;
-      position: relative;
-      cursor: pointer;
-    }
-    .size-card.best {
-      border: 2px solid green;
-      background-color: #e6ffe6;
-    }
-    .size-card.selected {
-      border: 2px solid orange;
-      background-color: #fff7e6;
-    }
-    .mini-box {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      background-color: #888;
-      margin: 2px;
-    }
-    .fit-count {
-      margin-top: 4px;
-      font-size: 12px;
-    }
-    #boardResult, #printingResult {
-      margin-top: 15px;
-      padding: 12px;
-      border: 2px dashed #4caf50;
-      background: #ecfff0;
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .board-rate-box {
-      margin-top: 10px;
-    }
-    .cut-line {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 2px;
-  height: 100%;
-  background: red;
-}
-.cut-line-visual {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: blue;
-  border-left: 2px dashed blue;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-.cut-line-horizontal {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  height: 2px;
-  background: blue;
-  border-top: 2px dashed blue;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-.size-card {
-  position: relative; /* Required for line positioning */
-}
+  body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
+    background-color: #f9f9f9;
+  }
+  h2 {
+    text-align: center;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 100px;
+    margin-bottom: 10px;
+  }
+  label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  input, select, button {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  button {
+    margin-top: 15px;
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #218838;
+  }
+  .total {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    color: green;
+  }
+  .box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .steps {
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .steps .step {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+  .steps label {
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 5px;
+  }
+  .step-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .gsm-select, .size-select {
+    min-width: 150px;
+  }
+  .size-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+  }
 
-  </style>
+  .size-card {
+    position: relative; /* required for cut line */
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 8px 10px;
+    background: #f1f1f1;
+    min-width: 100px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .size-card.best {
+    border: 2px solid green;
+    background-color: #e6ffe6;
+  }
+
+  .size-card.selected {
+    border: 2px solid orange;
+    background-color: #fff7e6;
+  }
+
+  .mini-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: #888;
+    margin: 2px;
+  }
+
+  .fit-count {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  #boardResult, #printingResult {
+    margin-top: 15px;
+    padding: 12px;
+    border: 2px dashed #4caf50;
+    background: #ecfff0;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .board-rate-box {
+    margin-top: 10px;
+  }
+
+  /* Virtual Cut Lines */
+  .cut-line-visual {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: blue;
+    border-left: 2px dashed blue;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  .cut-line-horizontal {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: blue;
+    border-top: 2px dashed blue;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+</style>
+
 </head>
 <body>
   <div class="box">
@@ -465,7 +464,7 @@ printingDataGlobal.forEach(data => {
   const [mW, mH] = [data.width, data.height];
   let virtualBoard = "";
 
-  // Check for virtual cut and draw line
+  // 🎯 Check for virtual cut
   const needsCut = (boardW > mW || boardH > mH) &&
     (
       (boardH > mH && boardH / 2 <= mH) ||
@@ -473,6 +472,7 @@ printingDataGlobal.forEach(data => {
     );
 
   if (needsCut) {
+    // Show a vertical or horizontal virtual cut line
     if (boardH > mH && boardH / 2 <= mH) {
       virtualBoard = `${boardW}x${boardH} → ${boardW}x${boardH / 2}`;
       const line = document.createElement("div");
@@ -507,10 +507,8 @@ printingDataGlobal.forEach(data => {
   card.appendChild(text);
   preview.appendChild(card);
 });
-
-
-}
-
+///==============
+  }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function updatePrintingQuotation() {
