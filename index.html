@@ -333,8 +333,12 @@ function updateBoardSizes() {
   sizePreview.appendChild(card);
 });
 
-function getStaticBoardRate(boardType, size, gsm) {
+function getStaticBoardRate(boardType, size, gsmRaw) {
+  // Clean GSM value if it includes " GSM" text (e.g., "250 GSM" → "250")
+  const gsm = gsmRaw.replace(" GSM", "");
+
   const key = `${boardType}-${size}-${gsm}`;
+
   const rates = {
     // Cyber XL - 200 GSM
     "Cyber XL-22 X 28-200": "Rate-14/-",
@@ -369,6 +373,7 @@ function getStaticBoardRate(boardType, size, gsm) {
 
   return rates[key] || "Rate-15/-";
 }
+
 
 
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
