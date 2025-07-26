@@ -389,8 +389,9 @@ function showBoardQuotation(data) {
 
   updatePrintingQuotation();
 }
+////////////////////////////////////////////////
 
-function updatePrintingSizes() {
+  function updatePrintingSizes() {
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
   if (!fileW || !fileH) return;
@@ -400,28 +401,22 @@ function updatePrintingSizes() {
   preview.innerHTML = "";
 
   let bestFit = null;
-  let bestFitCount = 0;
-  let bestWastage = Infinity;
+  let bestWaste = Infinity;
 
   printingDataGlobal = sizes.map(size => {
-    const [w, h] = size.split("x").map(parseFloat);
-    const fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
-    const fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
+    const [mW, mH] = size.split("x").map(parseFloat);
+    let fit1 = Math.floor(mW / fileW) * Math.floor(mH / fileH);
+    let fit2 = Math.floor(mW / fileH) * Math.floor(mH / fileW);
     const fitCount = Math.max(fit1, fit2);
     const used = fitCount * fileW * fileH;
-    const waste = w * h - used;
+    const waste = mW * mH - used;
 
-    // Best Fit Logic (check fitCount first, then lower waste)
-    if (
-      fitCount > bestFitCount ||
-      (fitCount === bestFitCount && waste < bestWastage)
-    ) {
+    if (fitCount > 0 && waste < bestWaste) {
       bestFit = size;
-      bestFitCount = fitCount;
-      bestWastage = waste;
+      bestWaste = waste;
     }
 
-    return { size, width: w, height: h, fitCount, waste };
+    return { size, width: mW, height: mH, fitCount, waste };
   });
 
   printingDataGlobal.forEach(data => {
@@ -434,6 +429,20 @@ function updatePrintingSizes() {
       updatePrintingQuotation();
     };
 
+    const board = currentBoardData;
+    let boardW = board?.width || 0;
+    let boardH = board?.height || 0;
+    const [mW, mH] = [data.width, data.height];
+    let virtualBoard = "";
+
+    if (boardW > mW || boardH > mH) {
+      if (boardH > mH && boardH / 2 <= mH) {
+        virtualBoard = `${boardW}x${boardH} → ${boardW}x${boardH / 2}`;
+      } else if (boardW > mW && boardW / 2 <= mW) {
+        virtualBoard = `${boardW}x${boardH} → ${boardW / 2}x${boardH}`;
+      }
+    }
+
     card.innerHTML = `<strong>${data.size}</strong><br>`;
     for (let i = 0; i < data.fitCount; i++) {
       const dot = document.createElement("div");
@@ -445,6 +454,7 @@ function updatePrintingSizes() {
     text.className = "fit-count";
     text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
     if (data.size === bestFit) text.innerHTML += " ✅ Best Fit";
+    if (virtualBoard) text.innerHTML += `<br><span style="color:orange;">Cut: ${virtualBoard}</span>`;
 
     card.appendChild(text);
     preview.appendChild(card);
@@ -452,6 +462,7 @@ function updatePrintingSizes() {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function updatePrintingQuotation() {
   const printingSize = document.getElementById("printingSize").value;
   const quantity = parseInt(document.getElementById("quantity").value);
