@@ -290,25 +290,52 @@ function updateBoardSizes() {
   });
 
   boardDataGlobal.forEach(data => {
-    const card = document.createElement("div");
-    card.className = "size-card";
-    if (data.size === bestSizeGlobal) card.classList.add("best");
+  const card = document.createElement("div");
+  card.className = "size-card";
+  if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    card.onclick = () => showBoardQuotation(data);
+  card.onclick = () => showBoardQuotation(data);
 
-    card.innerHTML = `<strong>${data.size}</strong><br>`;
-    for (let i = 0; i < data.fitCount; i++) {
-      const dot = document.createElement("div");
-      dot.className = "mini-box";
-      card.appendChild(dot);
-    }
-    const text = document.createElement("div");
-    text.className = "fit-count";
-    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestSizeGlobal ? " ✅ Best Fit" : "");
-    card.appendChild(text);
-    sizePreview.appendChild(card);
-  });
+  card.innerHTML = `<strong>${data.size}</strong><br>`;
+  for (let i = 0; i < data.fitCount; i++) {
+    const dot = document.createElement("div");
+    dot.className = "mini-box";
+    card.appendChild(dot);
+  }
 
+  const text = document.createElement("div");
+  text.className = "fit-count";
+  text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
+
+  const boardType = document.getElementById("boardType").value;
+  const gsm = document.getElementById("gsm").value;
+  const rateLine = document.createElement("div");
+  rateLine.style.marginTop = "2px";
+  rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
+  text.appendChild(rateLine);
+
+  if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
+  card.appendChild(text);
+  sizePreview.appendChild(card);
+});
+function getStaticBoardRate(boardType, size, gsm) {
+  const key = `${boardType}-${size}-${gsm}`;
+  const rates = {
+    "Cyber XL-22 X 28-200": "Rate-14/-",
+    "Cyber XL-23 X 36-200": "Rate-15/-",
+    "Cyber XL-25 X 36-200": "Rate-16/-",
+    "Cyber XL-20 X 30-200": "Rate-13/-",
+    "Cyber XL-23 X 30-200": "Rate-14/-",
+    "Cyber XL-31.5 X 41.5-200": "Rate-17/-",
+    "Cyber XL-25 X 30-200": "Rate-15/-",
+    "Art Card-30 X 40-250": "Rate-20/-",
+    "Art Card-23 X 36-250": "Rate-19/-",
+    "Art Card-25 X 36-250": "Rate-18/-",
+    "Art Card-22 X 28-250": "Rate-17/-"
+  };
+  return rates[key] || "Rate-15/-";
+}
+---------------------------------
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
 }
