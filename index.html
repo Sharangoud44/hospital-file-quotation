@@ -366,10 +366,6 @@ function getStaticBoardRate(boardType, size, gsm) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-  const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
-  if (bestData) showBoardQuotation(bestData);
-}
-
 function showBoardQuotation(data) {
   currentBoardData = data;
   const quantity = parseInt(document.getElementById("quantity").value);
