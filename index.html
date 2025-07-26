@@ -141,6 +141,31 @@
   height: 100%;
   background: red;
 }
+.cut-line-visual {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: blue;
+  border-left: 2px dashed blue;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.cut-line-horizontal {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  background: blue;
+  border-top: 2px dashed blue;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.size-card {
+  position: relative; /* Required for line positioning */
+}
 
   </style>
 </head>
@@ -434,43 +459,38 @@ printingDataGlobal.forEach(data => {
 
   if (data.size === bestFit) card.classList.add("best");
 
-  // Virtual cut logic
-  let virtualBoard = "";
   const board = currentBoardData;
   const boardW = board?.width || 0;
   const boardH = board?.height || 0;
   const [mW, mH] = [data.width, data.height];
+  let virtualBoard = "";
 
-  const needsCut =
-    (boardW > mW || boardH > mH) &&
+  // Check for virtual cut and draw line
+  const needsCut = (boardW > mW || boardH > mH) &&
     (
       (boardH > mH && boardH / 2 <= mH) ||
       (boardW > mW && boardW / 2 <= mW)
     );
 
   if (needsCut) {
-    const cutLine = document.createElement("div");
-    cutLine.className = "cut-line";
-    cutLine.innerText = "🔪 Cut Applied";
-    cutLine.style.color = "red";
-    cutLine.style.fontWeight = "bold";
-    cutLine.style.marginBottom = "4px";
-    card.appendChild(cutLine);
-
     if (boardH > mH && boardH / 2 <= mH) {
       virtualBoard = `${boardW}x${boardH} → ${boardW}x${boardH / 2}`;
+      const line = document.createElement("div");
+      line.className = "cut-line-horizontal";
+      card.appendChild(line);
     } else if (boardW > mW && boardW / 2 <= mW) {
       virtualBoard = `${boardW}x${boardH} → ${boardW / 2}x${boardH}`;
+      const line = document.createElement("div");
+      line.className = "cut-line-visual";
+      card.appendChild(line);
     }
   }
 
-  // Add click handler
   card.onclick = () => {
     document.getElementById("printingSize").value = data.size;
     updatePrintingQuotation();
   };
 
-  // Card visuals
   card.innerHTML += `<strong>${data.size}</strong><br>`;
   for (let i = 0; i < data.fitCount; i++) {
     const dot = document.createElement("div");
@@ -487,6 +507,7 @@ printingDataGlobal.forEach(data => {
   card.appendChild(text);
   preview.appendChild(card);
 });
+
 
 }
 
