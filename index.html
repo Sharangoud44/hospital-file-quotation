@@ -451,7 +451,12 @@ function updatePrintingQuotation() {
   if (!currentBoardData || !quantity || !fileW || !fileH) return;
 
   const sheets = Math.ceil(quantity / currentBoardData.fitCount);
-  let basePrice = (printingSize === "13.4x19.8") ? 1900 : 2500;
+  let basePrice = 2500;
+if (printingSize === "13.4x19.8") {
+  basePrice = 1900;
+} else if (printingSize === "22x28") {
+  basePrice = 3800;
+}
   let extra = Math.floor((sheets - 1) / 1000) * 1000;
   if (sheets > 3000) basePrice += extra;
 
