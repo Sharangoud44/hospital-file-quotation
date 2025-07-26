@@ -333,46 +333,59 @@ function updateBoardSizes() {
   sizePreview.appendChild(card);
 });
 
-function getStaticBoardRate(boardType, size, gsmRaw) {
-  // Clean GSM value if it includes " GSM" text (e.g., "250 GSM" → "250")
-  const gsm = gsmRaw.replace(" GSM", "");
-
+function getStaticBoardRate(boardType, size, gsm) {
   const key = `${boardType}-${size}-${gsm}`;
-
   const rates = {
-    // Cyber XL - 200 GSM
-    "Cyber XL-22 X 28-200": "Rate-14/-",
-    "Cyber XL-23 X 36-200": "Rate-15/-",
-    "Cyber XL-25 X 36-200": "Rate-16/-",
-    "Cyber XL-20 X 30-200": "Rate-13/-",
-    "Cyber XL-23 X 30-200": "Rate-14.5/-",
-    "Cyber XL-31.5 X 41.5-200": "Rate-17/-",
-    "Cyber XL-25 X 30-200": "Rate-15.5/-",
-
-    // Cyber XL - 250 GSM
-    "Cyber XL-22 X 28-250": "Rate-15/-",
-    "Cyber XL-23 X 36-250": "Rate-16.5/-",
-    "Cyber XL-25 X 36-250": "Rate-17.5/-",
-    "Cyber XL-20 X 30-250": "Rate-14/-",
-    "Cyber XL-23 X 30-250": "Rate-15.5/-",
-    "Cyber XL-31.5 X 41.5-250": "Rate-18/-",
-    "Cyber XL-25 X 30-250": "Rate-16.5/-",
-
-    // Art Card - 250 GSM
+    // ------------------- Art Card -------------------
     "Art Card-30 X 40-250": "Rate-20/-",
-    "Art Card-23 X 36-250": "Rate-19.5/-",
-    "Art Card-25 X 36-250": "Rate-18.5/-",
-    "Art Card-22 X 28-250": "Rate-17.5/-",
+    "Art Card-30 X 40-300": "Rate-21/-",
+    "Art Card-30 X 40-350": "Rate-22/-",
 
-    // Art Card - 300 GSM
-    "Art Card-30 X 40-300": "Rate-22/-",
-    "Art Card-23 X 36-300": "Rate-21/-",
-    "Art Card-25 X 36-300": "Rate-20/-",
-    "Art Card-22 X 28-300": "Rate-19/-"
+    "Art Card-23 X 36-250": "Rate-19/-",
+    "Art Card-23 X 36-300": "Rate-20/-",
+    "Art Card-23 X 36-350": "Rate-21/-",
+
+    "Art Card-25 X 36-250": "Rate-18.5/-",
+    "Art Card-25 X 36-300": "Rate-19.5/-",
+    "Art Card-25 X 36-350": "Rate-20.5/-",
+
+    "Art Card-22 X 28-250": "Rate-17/-",
+    "Art Card-22 X 28-300": "Rate-18/-",
+    "Art Card-22 X 28-350": "Rate-19/-",
+
+    // ------------------- Cyber XL -------------------
+    "Cyber XL-22 X 28-200": "Rate-14/-",
+    "Cyber XL-22 X 28-250": "Rate-15/-",
+    "Cyber XL-22 X 28-300": "Rate-16/-",
+
+    "Cyber XL-23 X 30-200": "Rate-14.5/-",
+    "Cyber XL-23 X 30-250": "Rate-15.5/-",
+    "Cyber XL-23 X 30-300": "Rate-16.5/-",
+
+    "Cyber XL-23 X 36-200": "Rate-15/-",
+    "Cyber XL-23 X 36-250": "Rate-16.5/-",
+    "Cyber XL-23 X 36-300": "Rate-18/-",
+
+    "Cyber XL-25 X 36-200": "Rate-16/-",
+    "Cyber XL-25 X 36-250": "Rate-17.5/-",
+    "Cyber XL-25 X 36-300": "Rate-19/-",
+
+    "Cyber XL-20 X 30-200": "Rate-13/-",
+    "Cyber XL-20 X 30-250": "Rate-14/-",
+    "Cyber XL-20 X 30-300": "Rate-15/-",
+
+    "Cyber XL-31.5 X 41.5-200": "Rate-17/-",
+    "Cyber XL-31.5 X 41.5-250": "Rate-18.5/-",
+    "Cyber XL-31.5 X 41.5-300": "Rate-20/-",
+
+    "Cyber XL-25 X 30-200": "Rate-15.5/-",
+    "Cyber XL-25 X 30-250": "Rate-16.5/-",
+    "Cyber XL-25 X 30-300": "Rate-17.5/-"
   };
 
-  return rates[key] || "Rate-15/-";
+  return rates[key] || "Rate-15/-"; // fallback
 }
+
 
 
 
