@@ -401,6 +401,7 @@ function updatePrintingSizes() {
 
   let bestFit = null;
   let bestFitCount = 0;
+  let bestWastage = Infinity;
 
   printingDataGlobal = sizes.map(size => {
     const [w, h] = size.split("x").map(parseFloat);
@@ -410,9 +411,14 @@ function updatePrintingSizes() {
     const used = fitCount * fileW * fileH;
     const waste = w * h - used;
 
-    if (fitCount > bestFitCount) {
+    // Best Fit Logic (check fitCount first, then lower waste)
+    if (
+      fitCount > bestFitCount ||
+      (fitCount === bestFitCount && waste < bestWastage)
+    ) {
       bestFit = size;
       bestFitCount = fitCount;
+      bestWastage = waste;
     }
 
     return { size, width: w, height: h, fitCount, waste };
@@ -434,21 +440,17 @@ function updatePrintingSizes() {
       dot.className = "mini-box";
       card.appendChild(dot);
     }
-    const text = document.createElement("div");
-text.className = "fit-count";
-text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
 
-if (data.size === bestFit) {
-  const bestLine = document.createElement("div");
-  bestLine.style.color = "green";
-  bestLine.textContent = "✅ Best Fit";
-  text.appendChild(bestLine);
-}
+    const text = document.createElement("div");
+    text.className = "fit-count";
+    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
+    if (data.size === bestFit) text.innerHTML += " ✅ Best Fit";
 
     card.appendChild(text);
     preview.appendChild(card);
   });
 }
+
 
 function updatePrintingQuotation() {
   const printingSize = document.getElementById("printingSize").value;
