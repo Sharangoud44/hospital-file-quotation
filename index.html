@@ -435,8 +435,16 @@ function updatePrintingSizes() {
       card.appendChild(dot);
     }
     const text = document.createElement("div");
-    text.className = "fit-count";
-    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²` + (data.size === bestFit ? " ✅ Best Fit" : "");
+text.className = "fit-count";
+text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
+
+if (data.size === bestFit) {
+  const bestLine = document.createElement("div");
+  bestLine.style.color = "green";
+  bestLine.textContent = "✅ Best Fit";
+  text.appendChild(bestLine);
+}
+
     card.appendChild(text);
     preview.appendChild(card);
   });
