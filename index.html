@@ -159,28 +159,30 @@
 
   /* Virtual Cut Lines */
 .cut-line-horizontal {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  height: 0;
-  border-top: 2px dotted lightblue;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-  pointer-events: none;
-}
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    border-top: 2px dotted #4ca3dd;
+    background: transparent;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 10;
+  }
 
-.cut-line-visual {
-  position: absolute;
-  top: 6px;
-  bottom: 6px;
-  width: 0;
-  border-left: 2px dotted lightblue;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-  pointer-events: none;
-}
+  .cut-line-visual {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-left: 2px dotted #4ca3dd;
+    background: transparent;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 10;
+  }
 
 
 </style>
@@ -347,20 +349,22 @@ function updateBoardSizes() {
     return { size, width: wRaw, height: hRaw, fitCount, waste };
   });
 
+  const printingSize = document.getElementById("printingSize").value;
+  const [mW, mH] = printingSize ? printingSize.split("x").map(parseFloat) : [null, null];
+
   boardDataGlobal.forEach(data => {
     const card = document.createElement("div");
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Add cut line only if board will be virtually cut to fit machine
-    const selectedMachine = document.getElementById("printingSize").value;
-    if (selectedMachine && data.fitCount > 1) {
-      const [mW, mH] = selectedMachine.split("x").map(parseFloat);
-      if (data.height > mH && data.height / 2 <= mH) {
+    // ✅ Virtual cut line logic on board card
+    if (mW && mH && data.fitCount > 1) {
+      if (data.height > mH && data.height / 2 === mH) {
         const line = document.createElement("div");
         line.className = "cut-line-horizontal";
         card.appendChild(line);
-      } else if (data.width > mW && data.width / 2 <= mW) {
+      }
+      if (data.width > mW && data.width / 2 === mW) {
         const line = document.createElement("div");
         line.className = "cut-line-visual";
         card.appendChild(line);
@@ -470,7 +474,16 @@ function updatePrintingSizes() {
   const fileH = parseFloat(document.getElementById("length").value);
   if (!fileW || !fileH) return;
 
-  const sizes = ["19 X 26", "15 X 20", "18 X 23", "22 X 28", "13.4 x 19.8"];
+const sizes = ["19 X 26", "15 X 20", "18 X 23", "22 X 28", "13.4 x 19.8", "13x19"];
+
+// ✅ Ensure 13x19 option is in the dropdown
+const printingSizeDropdown = document.getElementById("printingSize");
+if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")) {
+  const option = document.createElement("option");
+  option.value = "13x19";
+  option.textContent = "13 X 19 (Flat ₹15/sheet)";
+  printingSizeDropdown.appendChild(option);
+}
   let bestWastage = Infinity;
   let bestFit = null;
 
