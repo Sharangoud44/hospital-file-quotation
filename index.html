@@ -317,7 +317,7 @@ function updateBoardSizes() {
 
   boardDataGlobal = sizes.map(size => {
     const [hRaw, wRaw] = size.split(" X ").map(parseFloat);
-    const h = hRaw - 0.5; // gripper margin
+    const h = hRaw - 0.5;
     const w = wRaw - 0.5;
 
     let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
@@ -339,24 +339,24 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Show virtual cut line on board card if board larger than printer
-    const printingSize = document.getElementById("printingSize").value;
-    if (printingSize) {
-      const [mW, mH] = printingSize.split("x").map(parseFloat);
+    // ✅ Add virtual cut line to board preview card
+    const selectedMachine = document.getElementById("printingSize").value;
+    if (selectedMachine) {
+      const [mW, mH] = selectedMachine.split("x").map(parseFloat);
       if (data.height > mH && data.height / 2 <= mH) {
-        const cutLine = document.createElement("div");
-        cutLine.className = "cut-line-horizontal";
-        card.appendChild(cutLine);
+        const line = document.createElement("div");
+        line.className = "cut-line-horizontal";
+        card.appendChild(line);
       } else if (data.width > mW && data.width / 2 <= mW) {
-        const cutLine = document.createElement("div");
-        cutLine.className = "cut-line-visual";
-        card.appendChild(cutLine);
+        const line = document.createElement("div");
+        line.className = "cut-line-visual";
+        card.appendChild(line);
       }
     }
 
     card.onclick = () => showBoardQuotation(data);
 
-    card.innerHTML = `<strong>${data.size}</strong><br>`;
+    card.innerHTML += `<strong>${data.size}</strong><br>`;
     for (let i = 0; i < data.fitCount; i++) {
       const dot = document.createElement("div");
       dot.className = "mini-box";
@@ -381,7 +381,6 @@ function updateBoardSizes() {
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
 }
-
 
 
 ///////////////////////////////////////////////////////////////----------------------
@@ -541,23 +540,23 @@ function updatePrintingQuotation() {
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
 
-  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
+  if (!currentBoardData || !quantity || !fileW || !fileH) return;
 
   const [mW, mH] = printingSize.split("x").map(parseFloat);
   const isTooSmall = fileW > mW || fileH > mH;
 
-  const fitCount = currentBoardData.fitCount || 1;
-  let sheets = Math.ceil(quantity / fitCount);
-
-  // ✅ Double the sheets if board needs to be virtually cut
   let virtualCut = false;
-  if ((currentBoardData.width > mW && currentBoardData.width / 2 <= mW) ||
-      (currentBoardData.height > mH && currentBoardData.height / 2 <= mH)) {
+  if (
+    (currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
+    (currentBoardData.width > mW && currentBoardData.width / 2 <= mW)
+  ) {
     virtualCut = true;
-    sheets *= 2;
   }
 
-  // ✅ Add 1000 extra if sheets > 3000
+  const fitCount = currentBoardData.fitCount || 1;
+  let sheets = Math.ceil(quantity / fitCount);
+  if (virtualCut) sheets *= 2;
+
   let basePrice = (printingSize === "13.4x19.8") ? 1900 : (printingSize === "22x28" ? 3800 : 2500);
   if (sheets > 3000) basePrice += 1000;
 
