@@ -12,15 +12,18 @@
     margin: auto;
     background-color: #f9f9f9;
   }
+
   h2 {
     text-align: center;
   }
+
   .row {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     justify-content: space-between;
   }
+
   .field {
     display: flex;
     flex-direction: column;
@@ -28,15 +31,18 @@
     min-width: 100px;
     margin-bottom: 10px;
   }
+
   label {
     font-size: 13px;
     margin-bottom: 4px;
   }
+
   input, select, button {
     padding: 6px;
     border: 1px solid #ccc;
     border-radius: 4px;
   }
+
   button {
     margin-top: 15px;
     background-color: #28a745;
@@ -44,9 +50,11 @@
     font-weight: bold;
     cursor: pointer;
   }
+
   button:hover {
     background-color: #218838;
   }
+
   .total {
     margin-top: 20px;
     font-size: 22px;
@@ -54,27 +62,32 @@
     text-align: center;
     color: green;
   }
+
   .box {
     background: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
   }
+
   .steps {
     margin-top: 20px;
     font-size: 16px;
     line-height: 1.6;
   }
+
   .steps .step {
     margin-bottom: 15px;
     display: flex;
     flex-direction: column;
   }
+
   .steps label {
     font-weight: bold;
     font-size: 15px;
     margin-bottom: 5px;
   }
+
   .step-group {
     display: flex;
     gap: 10px;
@@ -82,9 +95,11 @@
     align-items: flex-start;
     flex-direction: column;
   }
+
   .gsm-select, .size-select {
     min-width: 150px;
   }
+
   .size-preview {
     display: flex;
     flex-wrap: wrap;
@@ -92,18 +107,17 @@
     margin: 10px 0;
   }
 
- .size-card {
-  position: relative; /* required for cut line */
-  border: 2px solid #ccc;
-  border-radius: 5px;
-  padding: 8px 10px;
-  background: #f1f1f1;
-  min-width: 100px;
-  text-align: center;
-  font-size: 12px;
-  cursor: pointer;
-}
-
+  .size-card {
+    position: relative; /* required for cut line */
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    padding: 8px 10px;
+    background: #f1f1f1;
+    min-width: 100px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+  }
 
   .size-card.best {
     border: 2px solid green;
@@ -128,7 +142,8 @@
     font-size: 12px;
   }
 
-  #boardResult, #printingResult {
+  #boardResult,
+  #printingResult {
     margin-top: 15px;
     padding: 12px;
     border: 2px dashed #4caf50;
@@ -143,37 +158,33 @@
   }
 
   /* Virtual Cut Lines */
+  .cut-line-horizontal {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    background: blue;
+    border-top: 2px dashed blue;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 10;
+  }
 
-.cut-line-horizontal {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  height: 2px;
-  background: blue;
-  border-top: 2px dashed blue;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  z-index: 10;
-}
-
-.cut-line-visual {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: blue;
-  border-left: 2px dashed blue;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 10;
-}
-
-
-
-
+  .cut-line-visual {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: blue;
+    border-left: 2px dashed blue;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 10;
+  }
 </style>
+
 
 </head>
 <body>
@@ -300,13 +311,13 @@ function updateBoardSizes() {
 
   let sizes = [];
   if (boardType === "Art Card") {
-    sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28", "13 X 19"];
+    sizes = ["30 X 40","23 X 36","25 X 36","22 X 28","13 X 19"];
   } else if (boardType === "Cyber XL") {
-    sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
+    sizes = ["22 X 28","23 X 30","23 X 36","25 X 36","20 X 30","31.5 X 41.5","25 X 30"];
   } else if (boardType === "Maplitho") {
     sizes = ["13 X 19"];
   } else if (boardType === "DuplexBoard") {
-    sizes = ["30 X 40", "23 X 36", "25 X 36"];
+    sizes = ["30 X 40","23 X 36","25 X 36"];
   }
 
   const sizeDropdown = document.getElementById("size");
@@ -315,24 +326,18 @@ function updateBoardSizes() {
 
   let bestWastage = Infinity;
   let bestSizeGlobal = null;
-
   boardDataGlobal = sizes.map(size => {
-    const [hRaw, wRaw] = size.split(" X ").map(parseFloat);
-    const h = hRaw - 0.5;
-    const w = wRaw - 0.5;
-
-    let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
-    let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
-    let fitCount = Math.max(fit1, fit2);
-    let used = fitCount * fileW * fileH;
-    let waste = w * h - used;
-
-    if (waste < bestWastage && fitCount > 0) {
+    const [hRaw,wRaw] = size.split(" X ").map(parseFloat);
+    const h = hRaw - 0.5, w = wRaw - 0.5;
+    const fit1 = Math.floor(w/fileW)*Math.floor(h/fileH);
+    const fit2 = Math.floor(w/fileH)*Math.floor(h/fileW);
+    const fitCount = Math.max(fit1, fit2);
+    const waste = w*h - fitCount*fileW*fileH;
+    if (fitCount>0 && waste < bestWastage) {
       bestWastage = waste;
       bestSizeGlobal = size;
     }
-
-    return { size, width: wRaw, height: hRaw, fitCount, waste };
+    return {size, width: wRaw, height: hRaw, fitCount, waste};
   });
 
   boardDataGlobal.forEach(data => {
@@ -340,40 +345,35 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Show blue virtual cut line in board card
-    const selectedMachine = document.getElementById("printingSize").value;
-    if (selectedMachine) {
-      const [mW, mH] = selectedMachine.toLowerCase().replaceAll(" ", "").split("x").map(parseFloat);
-      if (data.height > mH && data.height / 2 <= mH) {
-        const cutLine = document.createElement("div");
-        cutLine.className = "cut-line-horizontal";
-        card.appendChild(cutLine);
-      } else if (data.width > mW && data.width / 2 <= mW) {
-        const cutLine = document.createElement("div");
-        cutLine.className = "cut-line-visual";
-        card.appendChild(cutLine);
+    // VIRTUAL CUT: show dashed line in board preview card
+    const sel = document.getElementById("printingSize").value;
+    if (sel) {
+      const [mW,mH] = sel.split("x").map(v=>parseFloat(v));
+      if (data.height > mH && data.height/2 <= mH) {
+        const line = document.createElement("div");
+        line.className = "cut-line-horizontal";
+        card.appendChild(line);
+      } else if (data.width > mW && data.width/2 <= mW) {
+        const line = document.createElement("div");
+        line.className = "cut-line-visual";
+        card.appendChild(line);
       }
     }
 
     card.onclick = () => showBoardQuotation(data);
-
     card.innerHTML += `<strong>${data.size}</strong><br>`;
-    for (let i = 0; i < data.fitCount; i++) {
-      const dot = document.createElement("div");
-      dot.className = "mini-box";
+    for (let i=0;i<data.fitCount;i++){
+      const dot = document.createElement("div"); dot.className="mini-box";
       card.appendChild(dot);
     }
 
-    const text = document.createElement("div");
-    text.className = "fit-count";
+    const text = document.createElement("div"); text.className="fit-count";
     text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
-
-    const gsm = document.getElementById("gsm").value.replace(" GSM", "");
+    const gsm = document.getElementById("gsm").value.replace(" GSM","");
     const rateLine = document.createElement("div");
     rateLine.style.marginTop = "2px";
-    rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
+    rateLine.innerText = getStaticBoardRate(boardType,data.size,gsm);
     text.appendChild(rateLine);
-
     if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
     card.appendChild(text);
     sizePreview.appendChild(card);
@@ -382,7 +382,6 @@ function updateBoardSizes() {
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
 }
-
 
 ///////////////////////////////////////////////////////////////----------------------
 function getStaticBoardRate(boardType, size, gsm) {
@@ -540,36 +539,32 @@ function updatePrintingQuotation() {
   const quantity = parseInt(document.getElementById("quantity").value);
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
+  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
 
-  if (!currentBoardData || !quantity || !fileW || !fileH) return;
-
-  const [mW, mH] = printingSize.toLowerCase().replaceAll(" ", "").split("x").map(parseFloat);
+  const [mW,mH] = printingSize.split("x").map(v=>parseFloat(v));
   const isTooSmall = fileW > mW || fileH > mH;
 
-  let virtualCut = false;
-  if (
-    (currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
-    (currentBoardData.width > mW && currentBoardData.width / 2 <= mW)
-  ) {
-    virtualCut = true;
-  }
+  const board = currentBoardData;
+  let virtualCut = (board.height > mH && board.height/2 <= mH) || (board.width > mW && board.width/2 <= mW);
 
-  const fitCount = currentBoardData.fitCount || 1;
+  const fitCount = board.fitCount || 1;
   let sheets = Math.ceil(quantity / fitCount);
   if (virtualCut) sheets *= 2;
 
-  let basePrice = (printingSize === "13.4x19.8") ? 1900 : (printingSize === "22x28" ? 3800 : 2500);
+  let basePrice = (printingSize === "13.4x19.8") ? 1900 :
+                  (printingSize === "22x28") ? 3800 : 2500;
   if (sheets > 3000) basePrice += 1000;
 
-  const warningText = isTooSmall
-    ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
-    : "";
+  const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
+
+  const cutNote = virtualCut ? `<div style="color:orange;font-size:12px;"><b>🔪 Board will be virtually cut to fit</b></div>` : "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
     Machine Size: <b>${printingSize}</b><br>
     Sheets: <b>${sheets}</b><br>
-    Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
+    Printing Cost: ₹<b>${basePrice}</b><br>${cutNote}${warningText}`;
 }
+
 
 
 /////////////////////////////////////////////////////////////////////
