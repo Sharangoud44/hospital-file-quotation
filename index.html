@@ -158,31 +158,31 @@
   }
 
   /* Virtual Cut Lines */
-  .cut-line-horizontal {
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    height: 2px;
-    background: blue;
-    border-top: 2px dashed blue;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    z-index: 10;
-  }
+  /* Virtual Cut Lines - lighter and dashed */
+.cut-line-horizontal {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  height: 0;
+  border-top: 2px dashed lightblue;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
 
-  .cut-line-visual {
-    position: absolute;
-    top: 8px;
-    bottom: 8px;
-    width: 2px;
-    background: blue;
-    border-left: 2px dashed blue;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-    z-index: 10;
-  }
+.cut-line-visual {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  width: 0;
+  border-left: 2px dashed lightblue;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 </style>
 
 
@@ -311,13 +311,13 @@ function updateBoardSizes() {
 
   let sizes = [];
   if (boardType === "Art Card") {
-    sizes = ["30 X 40","23 X 36","25 X 36","22 X 28","13 X 19"];
+    sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28", "13 X 19"];
   } else if (boardType === "Cyber XL") {
-    sizes = ["22 X 28","23 X 30","23 X 36","25 X 36","20 X 30","31.5 X 41.5","25 X 30"];
+    sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
   } else if (boardType === "Maplitho") {
     sizes = ["13 X 19"];
   } else if (boardType === "DuplexBoard") {
-    sizes = ["30 X 40","23 X 36","25 X 36"];
+    sizes = ["30 X 40", "23 X 36", "25 X 36"];
   }
 
   const sizeDropdown = document.getElementById("size");
@@ -326,18 +326,24 @@ function updateBoardSizes() {
 
   let bestWastage = Infinity;
   let bestSizeGlobal = null;
+
   boardDataGlobal = sizes.map(size => {
-    const [hRaw,wRaw] = size.split(" X ").map(parseFloat);
-    const h = hRaw - 0.5, w = wRaw - 0.5;
-    const fit1 = Math.floor(w/fileW)*Math.floor(h/fileH);
-    const fit2 = Math.floor(w/fileH)*Math.floor(h/fileW);
-    const fitCount = Math.max(fit1, fit2);
-    const waste = w*h - fitCount*fileW*fileH;
-    if (fitCount>0 && waste < bestWastage) {
+    const [hRaw, wRaw] = size.split(" X ").map(parseFloat);
+    const h = hRaw - 0.5;
+    const w = wRaw - 0.5;
+
+    let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
+    let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
+    let fitCount = Math.max(fit1, fit2);
+    let used = fitCount * fileW * fileH;
+    let waste = w * h - used;
+
+    if (waste < bestWastage && fitCount > 0) {
       bestWastage = waste;
       bestSizeGlobal = size;
     }
-    return {size, width: wRaw, height: hRaw, fitCount, waste};
+
+    return { size, width: wRaw, height: hRaw, fitCount, waste };
   });
 
   boardDataGlobal.forEach(data => {
@@ -345,15 +351,15 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // VIRTUAL CUT: show dashed line in board preview card
-    const sel = document.getElementById("printingSize").value;
-    if (sel) {
-      const [mW,mH] = sel.split("x").map(v=>parseFloat(v));
-      if (data.height > mH && data.height/2 <= mH) {
+    // ✅ Show virtual cut line inside board preview card
+    const selectedMachine = document.getElementById("printingSize").value;
+    if (selectedMachine) {
+      const [mW, mH] = selectedMachine.split("x").map(parseFloat);
+      if (data.height > mH && data.height / 2 <= mH) {
         const line = document.createElement("div");
         line.className = "cut-line-horizontal";
         card.appendChild(line);
-      } else if (data.width > mW && data.width/2 <= mW) {
+      } else if (data.width > mW && data.width / 2 <= mW) {
         const line = document.createElement("div");
         line.className = "cut-line-visual";
         card.appendChild(line);
@@ -361,19 +367,24 @@ function updateBoardSizes() {
     }
 
     card.onclick = () => showBoardQuotation(data);
+
     card.innerHTML += `<strong>${data.size}</strong><br>`;
-    for (let i=0;i<data.fitCount;i++){
-      const dot = document.createElement("div"); dot.className="mini-box";
+    for (let i = 0; i < data.fitCount; i++) {
+      const dot = document.createElement("div");
+      dot.className = "mini-box";
       card.appendChild(dot);
     }
 
-    const text = document.createElement("div"); text.className="fit-count";
+    const text = document.createElement("div");
+    text.className = "fit-count";
     text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
-    const gsm = document.getElementById("gsm").value.replace(" GSM","");
+
+    const gsm = document.getElementById("gsm").value.replace(" GSM", "");
     const rateLine = document.createElement("div");
     rateLine.style.marginTop = "2px";
-    rateLine.innerText = getStaticBoardRate(boardType,data.size,gsm);
+    rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
     text.appendChild(rateLine);
+
     if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
     card.appendChild(text);
     sizePreview.appendChild(card);
@@ -381,7 +392,11 @@ function updateBoardSizes() {
 
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
+
+  // ✅ Update printing immediately when board changes
+  updatePrintingSizes();
 }
+
 
 ///////////////////////////////////////////////////////////////----------------------
 function getStaticBoardRate(boardType, size, gsm) {
@@ -539,31 +554,43 @@ function updatePrintingQuotation() {
   const quantity = parseInt(document.getElementById("quantity").value);
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
-  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
 
-  const [mW,mH] = printingSize.split("x").map(v=>parseFloat(v));
+  if (!currentBoardData || !quantity || !fileW || !fileH) return;
+
+  const [mW, mH] = printingSize.split("x").map(parseFloat);
   const isTooSmall = fileW > mW || fileH > mH;
 
-  const board = currentBoardData;
-  let virtualCut = (board.height > mH && board.height/2 <= mH) || (board.width > mW && board.width/2 <= mW);
+  let virtualCut = false;
+  if (
+    (currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
+    (currentBoardData.width > mW && currentBoardData.width / 2 <= mW)
+  ) {
+    virtualCut = true;
+  }
 
-  const fitCount = board.fitCount || 1;
+  const fitCount = currentBoardData.fitCount || 1;
   let sheets = Math.ceil(quantity / fitCount);
   if (virtualCut) sheets *= 2;
 
-  let basePrice = (printingSize === "13.4x19.8") ? 1900 :
-                  (printingSize === "22x28") ? 3800 : 2500;
-  if (sheets > 3000) basePrice += 1000;
+  // ✅ Apply 13x19 fixed ₹15/- per sheet rate (no ₹1000 extra)
+  let basePrice = 2500;
+  if (printingSize === "13.4x19.8") basePrice = 1900;
+  else if (printingSize === "22x28") basePrice = 3800;
+  else if (printingSize === "13x19") basePrice = sheets * 15;
+  else basePrice = 2500;
 
-  const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
+  if (printingSize !== "13x19" && sheets > 3000) basePrice += 1000;
 
-  const cutNote = virtualCut ? `<div style="color:orange;font-size:12px;"><b>🔪 Board will be virtually cut to fit</b></div>` : "";
+  const warningText = isTooSmall
+    ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
+    : "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
     Machine Size: <b>${printingSize}</b><br>
     Sheets: <b>${sheets}</b><br>
-    Printing Cost: ₹<b>${basePrice}</b><br>${cutNote}${warningText}`;
+    Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
+
 
 
 
