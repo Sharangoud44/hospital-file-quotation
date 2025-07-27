@@ -339,10 +339,10 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Add virtual cut line to board preview card
+    // ✅ Virtual cut line (corrected machine parsing)
     const selectedMachine = document.getElementById("printingSize").value;
     if (selectedMachine) {
-      const [mW, mH] = selectedMachine.split("x").map(parseFloat);
+      const [mW, mH] = selectedMachine.toLowerCase().replaceAll(" ", "").split("x").map(parseFloat);
       if (data.height > mH && data.height / 2 <= mH) {
         const line = document.createElement("div");
         line.className = "cut-line-horizontal";
@@ -542,7 +542,7 @@ function updatePrintingQuotation() {
 
   if (!currentBoardData || !quantity || !fileW || !fileH) return;
 
-  const [mW, mH] = printingSize.split("x").map(parseFloat);
+  const [mW, mH] = printingSize.toLowerCase().replaceAll(" ", "").split("x").map(parseFloat);
   const isTooSmall = fileW > mW || fileH > mH;
 
   let virtualCut = false;
@@ -569,7 +569,6 @@ function updatePrintingQuotation() {
     Sheets: <b>${sheets}</b><br>
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
-
 
 /////////////////////////////////////////////////////////////////////
 function calculatePrice() {
