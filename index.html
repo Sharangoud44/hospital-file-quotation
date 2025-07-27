@@ -158,30 +158,30 @@
   }
 
   /* Virtual Cut Lines */
-  /* Virtual Cut Lines - lighter and dashed */
 .cut-line-horizontal {
   position: absolute;
-  left: 5px;
-  right: 5px;
+  left: 6px;
+  right: 6px;
   height: 0;
-  border-top: 2px dashed lightblue;
+  border-top: 2px dotted lightblue;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none;
   z-index: 1;
+  pointer-events: none;
 }
 
 .cut-line-visual {
   position: absolute;
-  top: 5px;
-  bottom: 5px;
+  top: 6px;
+  bottom: 6px;
   width: 0;
-  border-left: 2px dashed lightblue;
+  border-left: 2px dotted lightblue;
   left: 50%;
   transform: translateX(-50%);
-  pointer-events: none;
   z-index: 1;
+  pointer-events: none;
 }
+
 
 </style>
 
@@ -266,6 +266,7 @@
           <option value="15x20">15 X 20</option>
           <option value="18x23">18 X 23</option>
           <option value="22x28">22 X 28</option>
+          <option value="13x19">13 X 19 (₹15/sheet)</option>
           <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
         </select>
         <div id="printingPreview" class="size-preview" id="printingSizePreview"></div>
@@ -351,9 +352,9 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Show virtual cut line inside board preview card
+    // ✅ Add cut line only if board will be virtually cut to fit machine
     const selectedMachine = document.getElementById("printingSize").value;
-    if (selectedMachine) {
+    if (selectedMachine && data.fitCount > 1) {
       const [mW, mH] = selectedMachine.split("x").map(parseFloat);
       if (data.height > mH && data.height / 2 <= mH) {
         const line = document.createElement("div");
@@ -392,10 +393,8 @@ function updateBoardSizes() {
 
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
-
-  // ✅ Update printing immediately when board changes
-  updatePrintingSizes();
 }
+
 
 
 ///////////////////////////////////////////////////////////////----------------------
@@ -562,8 +561,9 @@ function updatePrintingQuotation() {
 
   let virtualCut = false;
   if (
-    (currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
-    (currentBoardData.width > mW && currentBoardData.width / 2 <= mW)
+    currentBoardData.fitCount > 1 &&
+    ((currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
+     (currentBoardData.width > mW && currentBoardData.width / 2 <= mW))
   ) {
     virtualCut = true;
   }
@@ -572,14 +572,10 @@ function updatePrintingQuotation() {
   let sheets = Math.ceil(quantity / fitCount);
   if (virtualCut) sheets *= 2;
 
-  // ✅ Apply 13x19 fixed ₹15/- per sheet rate (no ₹1000 extra)
   let basePrice = 2500;
   if (printingSize === "13.4x19.8") basePrice = 1900;
-  else if (printingSize === "22x28") basePrice = 3800;
   else if (printingSize === "13x19") basePrice = sheets * 15;
-  else basePrice = 2500;
-
-  if (printingSize !== "13x19" && sheets > 3000) basePrice += 1000;
+  else if (sheets > 3000) basePrice += 1000;
 
   const warningText = isTooSmall
     ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
@@ -590,6 +586,7 @@ function updatePrintingQuotation() {
     Sheets: <b>${sheets}</b><br>
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
+
 
 
 
