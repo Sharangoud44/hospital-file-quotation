@@ -332,36 +332,58 @@ function updateBoardSizes() {
 
     return { size, width: wRaw, height: hRaw, fitCount, waste };
   });
+///////////////////////////////////////////////////
+ boardDataGlobal.forEach(data => {
+  const card = document.createElement("div");
+  card.className = "size-card";
+  if (data.size === bestSizeGlobal) card.classList.add("best");
 
-  boardDataGlobal.forEach(data => {
-    const card = document.createElement("div");
-    card.className = "size-card";
-    if (data.size === bestSizeGlobal) card.classList.add("best");
+  // ✅ Add visual cut line on board if virtual cut needed
+  if (currentBoardData) {
+    const boardW = data.width;
+    const boardH = data.height;
+    const fileW = parseFloat(document.getElementById("width").value);
+    const fileH = parseFloat(document.getElementById("length").value);
 
-    card.onclick = () => showBoardQuotation(data);
-
-    card.innerHTML = `<strong>${data.size}</strong><br>`;
-    for (let i = 0; i < data.fitCount; i++) {
-      const dot = document.createElement("div");
-      dot.className = "mini-box";
-      card.appendChild(dot);
+    // Horizontal virtual cut
+    if (boardH > fileH * 2 && boardH / 2 <= boardH) {
+      const cutLine = document.createElement("div");
+      cutLine.className = "cut-line-horizontal";
+      card.appendChild(cutLine);
     }
+    // Vertical virtual cut
+    else if (boardW > fileW * 2 && boardW / 2 <= boardW) {
+      const cutLine = document.createElement("div");
+      cutLine.className = "cut-line-visual";
+      card.appendChild(cutLine);
+    }
+  }
 
-    const text = document.createElement("div");
-    text.className = "fit-count";
-    text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
+  card.onclick = () => showBoardQuotation(data);
 
-    const gsm = document.getElementById("gsm").value.replace(" GSM", "");
-    const rateLine = document.createElement("div");
-    rateLine.style.marginTop = "2px";
-    rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
-    text.appendChild(rateLine);
+  card.innerHTML += `<strong>${data.size}</strong><br>`;
+  for (let i = 0; i < data.fitCount; i++) {
+    const dot = document.createElement("div");
+    dot.className = "mini-box";
+    card.appendChild(dot);
+  }
 
-    if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
-    card.appendChild(text);
-    sizePreview.appendChild(card);
-  });
+  const text = document.createElement("div");
+  text.className = "fit-count";
+  text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
 
+  const gsm = document.getElementById("gsm").value.replace(" GSM", "");
+  const rateLine = document.createElement("div");
+  rateLine.style.marginTop = "2px";
+  rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
+  text.appendChild(rateLine);
+
+  if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
+  card.appendChild(text);
+  sizePreview.appendChild(card);
+});
+
+////////////////////////////////////////////////////////////////////////////////
   const bestData = boardDataGlobal.find(d => d.size === bestSizeGlobal);
   if (bestData) showBoardQuotation(bestData);
 }
@@ -472,18 +494,18 @@ function updatePrintingSizes() {
     card.className = "size-card";
     if (data.size === bestFit) card.classList.add("best");
 
-    // ✅ Show virtual cut line if board larger than printer
-    if (currentBoardData) {
-      if (currentBoardData.height > data.height && currentBoardData.height / 2 <= data.height) {
-        const cutLine = document.createElement("div");
-        cutLine.className = "cut-line-horizontal";
-        card.appendChild(cutLine);
-      } else if (currentBoardData.width > data.width && currentBoardData.width / 2 <= data.width) {
-        const cutLine = document.createElement("div");
-        cutLine.className = "cut-line-visual";
-        card.appendChild(cutLine);
-      }
-    }
+    // // ✅ Show virtual cut line if board larger than printer
+    // if (currentBoardData) {
+    //   if (currentBoardData.height > data.height && currentBoardData.height / 2 <= data.height) {
+    //     const cutLine = document.createElement("div");
+    //     cutLine.className = "cut-line-horizontal";
+    //     card.appendChild(cutLine);
+    //   } else if (currentBoardData.width > data.width && currentBoardData.width / 2 <= data.width) {
+    //     const cutLine = document.createElement("div");
+    //     cutLine.className = "cut-line-visual";
+    //     card.appendChild(cutLine);
+    //   }
+    // }
 
     card.onclick = () => {
       document.getElementById("printingSize").value = data.size;
@@ -549,9 +571,7 @@ function updatePrintingQuotation() {
     ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
     : "";
 
-  const cutNote = virtualCut
-    ? `<div style="color:orange;font-size:12px;"><b>🔪 Board will be virtually cut to fit the machine</b></div>`
-    : "";
+  const cutNote = "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
     Machine Size: <b>${printingSize}</b><br>
