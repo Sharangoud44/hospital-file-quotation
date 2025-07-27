@@ -338,26 +338,41 @@ function updateBoardSizes() {
   card.className = "size-card";
   if (data.size === bestSizeGlobal) card.classList.add("best");
 
-  // ✅ Add visual cut line on board if virtual cut needed
-  if (currentBoardData) {
-    const boardW = data.width;
-    const boardH = data.height;
-    const fileW = parseFloat(document.getElementById("width").value);
-    const fileH = parseFloat(document.getElementById("length").value);
-
-    // Horizontal virtual cut
-    if (boardH > fileH * 2 && boardH / 2 <= boardH) {
-      const cutLine = document.createElement("div");
-      cutLine.className = "cut-line-horizontal";
-      card.appendChild(cutLine);
-    }
-    // Vertical virtual cut
-    else if (boardW > fileW * 2 && boardW / 2 <= boardW) {
-      const cutLine = document.createElement("div");
-      cutLine.className = "cut-line-visual";
-      card.appendChild(cutLine);
-    }
+   // Add virtual cut line only if board is larger than selected printing machine
+const selectedPrintingSize = document.getElementById("printingSize").value;
+if (selectedPrintingSize) {
+  const [mW, mH] = selectedPrintingSize.split("x").map(parseFloat);
+  if (data.height > mH && data.height / 2 <= mH) {
+    const cutLine = document.createElement("div");
+    cutLine.className = "cut-line-horizontal";
+    card.appendChild(cutLine);
+  } else if (data.width > mW && data.width / 2 <= mW) {
+    const cutLine = document.createElement("div");
+    cutLine.className = "cut-line-visual";
+    card.appendChild(cutLine);
   }
+}
+
+  // // ✅ Add visual cut line on board if virtual cut needed
+  // if (currentBoardData) {
+  //   const boardW = data.width;
+  //   const boardH = data.height;
+  //   const fileW = parseFloat(document.getElementById("width").value);
+  //   const fileH = parseFloat(document.getElementById("length").value);
+
+  //   // Horizontal virtual cut
+  //   if (boardH > fileH * 2 && boardH / 2 <= boardH) {
+  //     const cutLine = document.createElement("div");
+  //     cutLine.className = "cut-line-horizontal";
+  //     card.appendChild(cutLine);
+  //   }
+  //   // Vertical virtual cut
+  //   else if (boardW > fileW * 2 && boardW / 2 <= boardW) {
+  //     const cutLine = document.createElement("div");
+  //     cutLine.className = "cut-line-visual";
+  //     card.appendChild(cutLine);
+  //   }
+  // }
 
   card.onclick = () => showBoardQuotation(data);
 
@@ -551,12 +566,11 @@ function updatePrintingQuotation() {
 
   // ✅ Check if board is bigger than printing machine and apply virtual cut
   let virtualCut = false;
-  let boardW = currentBoardData.width;
-  let boardH = currentBoardData.height;
+if ((currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
+    (currentBoardData.width > mW && currentBoardData.width / 2 <= mW)) {
+  virtualCut = true;
+}
 
-  if (boardW > mW || boardH > mH) {
-    virtualCut = true;
-  }
 
   const fitCount = currentBoardData.fitCount || 1;
   let sheets = Math.ceil(quantity / fitCount);
