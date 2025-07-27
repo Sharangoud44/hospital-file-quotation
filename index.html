@@ -172,6 +172,7 @@
 
 
 
+
 </style>
 
 </head>
@@ -339,18 +340,18 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Virtual cut line (corrected machine parsing)
+    // ✅ Show blue virtual cut line in board card
     const selectedMachine = document.getElementById("printingSize").value;
     if (selectedMachine) {
       const [mW, mH] = selectedMachine.toLowerCase().replaceAll(" ", "").split("x").map(parseFloat);
       if (data.height > mH && data.height / 2 <= mH) {
-        const line = document.createElement("div");
-        line.className = "cut-line-horizontal";
-        card.appendChild(line);
+        const cutLine = document.createElement("div");
+        cutLine.className = "cut-line-horizontal";
+        card.appendChild(cutLine);
       } else if (data.width > mW && data.width / 2 <= mW) {
-        const line = document.createElement("div");
-        line.className = "cut-line-visual";
-        card.appendChild(line);
+        const cutLine = document.createElement("div");
+        cutLine.className = "cut-line-visual";
+        card.appendChild(cutLine);
       }
     }
 
@@ -570,6 +571,7 @@ function updatePrintingQuotation() {
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
 
+
 /////////////////////////////////////////////////////////////////////
 function calculatePrice() {
   const design = parseFloat(document.getElementById("design").value) || 0;
@@ -591,7 +593,11 @@ function calculatePrice() {
 document.getElementById("boardRate").addEventListener("input", () => {
   if (currentBoardData) showBoardQuotation(currentBoardData);
 });
-document.getElementById("printingSize").addEventListener("change", updatePrintingQuotation);
+
+document.getElementById("printingSize").addEventListener("change", () => {
+  updateBoardSizes();             // ✅ STEP 4
+  updatePrintingQuotation();      // ✅ STEP 4
+});
 </script>
 </body>
 </html>
