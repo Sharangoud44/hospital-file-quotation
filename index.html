@@ -342,7 +342,7 @@ function updateBoardSizes() {
       <div class="fit-count">${fitCount} Files (${label})</div>
     `;
 
-    // Show virtual cut lines (exact half)
+    // Show cut lines (exact half)
     const showVerticalCut = board.width % 2 === 0 &&
                             board.width / 2 >= fileWidth &&
                             board.height >= fileHeight &&
@@ -365,19 +365,19 @@ function updateBoardSizes() {
       card.appendChild(hLine);
     }
 
-    // Trim logic (when exact cut not possible, trim 1 inch to make it fit)
+    // Show trim line if trimming 1 inch can make it printable
     const selectedMachine = printingMachineSizes.find(p => p.label === selectedPrintingSize);
     if (selectedMachine) {
-      const usableWidth = selectedMachine.width - 0.5;
-      const usableHeight = selectedMachine.height - 0.5;
+      const usableWidth = selectedMachine.width;
+      const usableHeight = selectedMachine.height;
 
-      const canTrimWidth = (board.width - 1 >= usableWidth && board.height >= usableHeight);
-      const canTrimHeight = (board.height - 1 >= usableHeight && board.width >= usableWidth);
+      const canTrimWidth = board.width - 1 >= usableWidth && board.height >= usableHeight;
+      const canTrimHeight = board.height - 1 >= usableHeight && board.width >= usableWidth;
 
-      if ((canTrimWidth || canTrimHeight) && fitCount > 1) {
+      if ((canTrimWidth || canTrimHeight) && fitCount > 0) {
         const trimLine = document.createElement("div");
         trimLine.className = "cut-line trim";
-        trimLine.title = "Trim 1 inch to fit printing machine";
+        trimLine.title = "Trim 1 inch to fit machine";
         card.appendChild(trimLine);
       }
     }
@@ -387,12 +387,13 @@ function updateBoardSizes() {
       selectedBoardSizeText = `${board.width} X ${board.height}`;
       highlightSelectedCard(card, "board-card");
       updateBoardQuotation();
-      updatePrintingQuotation(); // ensure quotation updates with board size
+      updatePrintingQuotation(); // Update printing based on board size
     });
 
     boardContainer.appendChild(card);
   });
 }
+
 
 
 ///////////////////////////////////////////////////////////////----------------------
