@@ -442,7 +442,7 @@ function getStaticBoardRate(boardType, size, gsm) {
 
 
 function showBoardQuotation(data) {
-  currentBoardData = data;
+  currentBoardData = data;  // ✅ This is enough
   const quantity = parseInt(document.getElementById("quantity").value);
   const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
   const sheets = Math.ceil(quantity / data.fitCount);
@@ -462,8 +462,9 @@ function showBoardQuotation(data) {
     }
   });
 
-  updatePrintingQuotation();
+  updatePrintingQuotation(); // ✅ Only one call here
 }
+
 ////////////////////////////////////////////////
 
 function updatePrintingSizes() {
@@ -567,17 +568,24 @@ function updatePrintingQuotation() {
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
 
-  if (!currentBoardData || !quantity || !fileW || !fileH) return;
+  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
 
-  const [mW, mH] = printingSize.split("x").map(parseFloat);
+  // Gripper margin logic
+  const [mW_raw, mH_raw] = printingSize.toLowerCase().split("x").map(s => parseFloat(s));
+  const mW = mW_raw - 0.5;
+  const mH = mH_raw - 0.5;
+
   const isTooSmall = fileW > mW || fileH > mH;
 
+  // Virtual cut logic
   let virtualCut = false;
-  if (
-    currentBoardData.fitCount > 1 &&
-    ((currentBoardData.height > mH && currentBoardData.height / 2 <= mH) ||
-     (currentBoardData.width > mW && currentBoardData.width / 2 <= mW))
-  ) {
+  const boardW = currentBoardData.width;
+  const boardH = currentBoardData.height;
+
+  const canCutWidth = boardW > mW_raw && boardW / 2 === mW_raw;
+  const canCutHeight = boardH > mH_raw && boardH / 2 === mH_raw;
+
+  if (currentBoardData.fitCount > 1 && (canCutWidth || canCutHeight)) {
     virtualCut = true;
   }
 
@@ -585,10 +593,18 @@ function updatePrintingQuotation() {
   let sheets = Math.ceil(quantity / fitCount);
   if (virtualCut) sheets *= 2;
 
-  let basePrice = 2500;
-  if (printingSize === "13.4x19.8") basePrice = 1900;
-  else if (printingSize === "13x19") basePrice = sheets * 15;
-  else if (sheets > 3000) basePrice += 1000;
+  // Base printing price
+  let basePrice;
+  const normalizedSize = printingSize.replace(/\s+/g, "").toLowerCase();
+
+  if (normalizedSize === "13x19") {
+    basePrice = sheets * 15;
+  } else if (normalizedSize === "13.4x19.8") {
+    basePrice = 1900;
+  } else {
+    basePrice = 2500;
+    if (sheets > 3000) basePrice += 1000;
+  }
 
   const warningText = isTooSmall
     ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
@@ -596,7 +612,7 @@ function updatePrintingQuotation() {
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
     Machine Size: <b>${printingSize}</b><br>
-    Sheets: <b>${sheets}</b><br>
+    Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
 }
 
