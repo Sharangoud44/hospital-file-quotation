@@ -319,81 +319,100 @@ let boardDataGlobal = [];
 let printingDataGlobal = [];
 ///////////////////////////////////////////////////////////////////////////
 function updateBoardSizes() {
-  const boardContainer = document.getElementById("boardPreviewCards");
+  const boardContainer = document.getElementById("boardSizesContainer");
   boardContainer.innerHTML = "";
 
+  const boardType = document.getElementById("boardType").value;
   const fileWidth = parseFloat(document.getElementById("fileWidth").value);
   const fileHeight = parseFloat(document.getElementById("fileHeight").value);
-  const selectedBoardType = document.getElementById("boardType").value;
-  const selectedPrintingSize = document.getElementById("printingSize").value;
 
-  if (!fileWidth || !fileHeight || !selectedBoardType) return;
+  const printingSize = document.getElementById("printingSize").value;
+  let [printW, printH] = printingSize.split("x").map(Number);
+  printW -= 0.5;
+  printH -= 0.5;
 
-  boardSizes.forEach((board) => {
-    if (!board.type.includes(selectedBoardType)) return;
+  const boards = boardSizes[boardType] || [];
+  let bestFitCount = 0;
 
-    let fitCount = Math.floor(board.width / fileWidth) * Math.floor(board.height / fileHeight);
-    let label = fitCount === 1 ? "Full" : fitCount === 2 ? "Half" : fitCount === 4 ? "Quarter" : `${fitCount} Files`;
+  boards.forEach(board => {
+    const [bw, bh] = board.size;
+    const boardWidth = Math.max(bw, bh);
+    const boardHeight = Math.min(bw, bh);
+    const label = `${boardWidth} x ${boardHeight}`;
+    const cost = board.cost;
+
+    const fitX = Math.floor(boardWidth / fileWidth);
+    const fitY = Math.floor(boardHeight / fileHeight);
+    const fitCount = fitX * fitY;
+
+    const areaUsed = (fitX * fileWidth) * (fitY * fileHeight);
+    const boardArea = boardWidth * boardHeight;
+    const wastage = Math.round(((boardArea - areaUsed) / boardArea) * 100);
+
+    const isBestFit = fitCount > bestFitCount;
+    if (isBestFit) bestFitCount = fitCount;
 
     const card = document.createElement("div");
-    card.className = "board-card";
+    card.className = "preview-card";
+    if (isBestFit && fitCount > 0) card.classList.add("best-fit");
+
+    const fitLabel = fitCount >= 4 ? "Quarter" : fitCount === 2 ? "Half" : fitCount === 1 ? "Full" : "N/A";
     card.innerHTML = `
-      <div class="card-dimensions">${board.width} × ${board.height}</div>
-      <div class="fit-count">${fitCount} Files (${label})</div>
+      <div class="card-dimensions">${label} (${fitLabel})</div>
+      <div class="card-fit">Fits: ${fitCount} files</div>
+      <div class="card-wastage">Wastage: ${wastage}%</div>
+      <div class="card-cost">Cost: ₹${cost}/board</div>
     `;
 
-    // Show cut lines (exact half)
-    const showVerticalCut = board.width % 2 === 0 &&
-                            board.width / 2 >= fileWidth &&
-                            board.height >= fileHeight &&
-                            fitCount > 1;
+    // Add virtual cut lines (only if board can be split cleanly in half to fit machine)
+    const halves = [
+      [boardWidth / 2, boardHeight],
+      [boardWidth, boardHeight / 2],
+    ];
 
-    const showHorizontalCut = board.height % 2 === 0 &&
-                              board.height / 2 >= fileHeight &&
-                              board.width >= fileWidth &&
-                              fitCount > 1;
-
-    if (showVerticalCut) {
-      const vLine = document.createElement("div");
-      vLine.className = "cut-line vertical";
-      card.appendChild(vLine);
-    }
-
-    if (showHorizontalCut) {
-      const hLine = document.createElement("div");
-      hLine.className = "cut-line horizontal";
-      card.appendChild(hLine);
-    }
-
-    // Show trim line if trimming 1 inch can make it printable
-    const selectedMachine = printingMachineSizes.find(p => p.label === selectedPrintingSize);
-    if (selectedMachine) {
-      const usableWidth = selectedMachine.width;
-      const usableHeight = selectedMachine.height;
-
-      const canTrimWidth = board.width - 1 >= usableWidth && board.height >= usableHeight;
-      const canTrimHeight = board.height - 1 >= usableHeight && board.width >= usableWidth;
-
-      if ((canTrimWidth || canTrimHeight) && fitCount > 0) {
-        const trimLine = document.createElement("div");
-        trimLine.className = "cut-line trim";
-        trimLine.title = "Trim 1 inch to fit machine";
-        card.appendChild(trimLine);
-      }
-    }
-
-    card.addEventListener("click", () => {
-      selectedBoardSize = board;
-      selectedBoardSizeText = `${board.width} X ${board.height}`;
-      highlightSelectedCard(card, "board-card");
-      updateBoardQuotation();
-      updatePrintingQuotation(); // Update printing based on board size
+    const showCutLine = halves.some(([w, h]) => {
+      const fitsMachine = (
+        (Math.abs(w - printW) < 0.5 && Math.abs(h - printH) < 0.5) ||
+        (Math.abs(w - printH) < 0.5 && Math.abs(h - printW) < 0.5)
+      );
+      return fitsMachine && fitCount > 1;
     });
+
+    if (showCutLine) {
+      const cutLine = document.createElement("div");
+      cutLine.className = "cut-line";
+      card.appendChild(cutLine);
+    }
+
+    // Add trimming red lines (only if slightly larger than machine size, and can't be cut exactly)
+    const canTrim = (
+      (boardWidth > printW && boardHeight > printH && !showCutLine && fitCount > 0) &&
+      (Math.abs(boardWidth - printW) <= 2 || Math.abs(boardHeight - printH) <= 2)
+    );
+
+    if (canTrim) {
+      if (boardWidth - printW <= 2) {
+        const vLine = document.createElement("div");
+        vLine.className = "trim-line-vertical";
+        card.appendChild(vLine);
+      }
+      if (boardHeight - printH <= 2) {
+        const hLine = document.createElement("div");
+        hLine.className = "trim-line-horizontal";
+        card.appendChild(hLine);
+      }
+
+      const label = document.createElement("div");
+      label.className = "trim-label";
+      label.textContent = "Trim";
+      card.appendChild(label);
+    }
 
     boardContainer.appendChild(card);
   });
-}
 
+  updateBoardQuotation(); // Call quotation update
+}
 
 
 ///////////////////////////////////////////////////////////////----------------------
