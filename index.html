@@ -274,24 +274,19 @@
         <div id="printingPreview" class="size-preview" id="printingSizePreview"></div>
         <div id="printingResult"></div>
       </div>
+///////////////////////////////////////////////////////////////////// LAMINATION
+   <div class="quotation-section">
+  <h2>4. Lamination</h2>
+  <label>Length (in): <input type="number" id="laminationLength" step="0.1" /></label>
+  <label>Breadth (in): <input type="number" id="laminationBreadth" step="0.1" /></label>
+  <label>Lamination Rate (₹ per 100 sq.in): <input type="number" id="laminationRate" step="0.01" value="0.60" /></label>
 
-      <div class="step">
-  <label>4. Lamination</label>
-  <div>
-    <label>Length (in):</label>
-    <input type="number" id="lamLength" step="0.01" />
+  <div id="laminationQuotation" style="margin-top: 10px;">
+    <!-- Quotation lines appear here -->
   </div>
-  <div>
-    <label>Breadth (in):</label>
-    <input type="number" id="lamBreadth" step="0.01" />
-  </div>
-  <div>
-    <label>Lamination Rate (₹ per 100 sq.in):</label>
-    <input type="number" id="lamRate" step="0.01" value="0.60" />
-  </div>
-  <div id="laminationResult" style="margin-top: 10px; font-weight: bold;"></div>
 </div>
 
+///////////////////////////////////////////////////////////////////////////////////////
       <div class="step">
         <label for="die">5. Die</label>
         <input type="number" id="die" value="0">
@@ -650,81 +645,60 @@ function updatePrintingQuotation() {
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}
   `;
 }
+updateLaminationSection(mH, mW, sheets);  // STEP 3: Update Lamination Section
 
 /////////////////////////////////////////////////////////////////////
 function calculatePrice() {
+  // Fetch all inputs
   const design = parseFloat(document.getElementById("design").value) || 0;
-  const length = parseFloat(document.getElementById("laminationLength").value) || 0;
-const breadth = parseFloat(document.getElementById("laminationBreadth").value) || 0;
-const laminationRateValue = parseFloat(document.getElementById("laminationRate").value) || 0;
-const laminationQty = parseFloat(document.getElementById("laminationQuantity").textContent) || 0;
-
-const laminationRateSolution = (length * breadth * laminationRateValue) / 100;
-const lamination = laminationRateSolution * laminationQty;
-
   const die = parseFloat(document.getElementById("die").value) || 0;
   const punching = parseFloat(document.getElementById("punching").value) || 0;
   const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
+  // Board Cost
   const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
   const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
 
+  // Printing Cost
   const printingCostMatch = document.getElementById("printingResult").innerText.match(/Printing Cost: ₹(\d+(\.\d+)?)/);
   const printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
 
- const total = design + board + printing + lamination + die + punching + pasting;
+  // Lamination Cost
+  const length = parseFloat(document.getElementById("laminationLength").value) || 0;
+  const breadth = parseFloat(document.getElementById("laminationBreadth").value) || 0;
+  const rate = parseFloat(document.getElementById("laminationRate").value) || 0;
+
+  // Get quantity from lamination section (fallback to 0 if not found)
+  const qtyMatch = document.getElementById("laminationQuotation").textContent.match(/Quantity: (\d+)/);
+  const qty = qtyMatch ? parseInt(qtyMatch[1]) : 0;
+
+  const lamination = (length * breadth * rate / 100) * qty;
+
+  // Total
+  const total = design + board + printing + lamination + die + punching + pasting;
 
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
 
-document.getElementById("boardRate").addEventListener("input", () => {
-  if (currentBoardData) showBoardQuotation(currentBoardData);
-});
-
-document.getElementById("printingSize").addEventListener("change", () => {
-  updateBoardSizes();             // ✅ STEP 4
-  updatePrintingQuotation();      // ✅ STEP 4
-});
 
   //////////////////////////////////////////////
 
   function updateLaminationSection(length, breadth, quantity) {
-  const lamLengthInput = document.getElementById("lamLength");
-  const lamBreadthInput = document.getElementById("lamBreadth");
-  const lamRateInput = document.getElementById("lamRate");
-  const lamResult = document.getElementById("laminationResult");
-
   // Set default values
-  lamLengthInput.value = length.toFixed(2);
-  lamBreadthInput.value = breadth.toFixed(2);
+  document.getElementById("laminationLength").value = length.toFixed(2);
+  document.getElementById("laminationBreadth").value = breadth.toFixed(2);
 
-  function calculateLamination() {
-    const l = parseFloat(lamLengthInput.value);
-    const b = parseFloat(lamBreadthInput.value);
-    const r = parseFloat(lamRateInput.value);
+  const rate = parseFloat(document.getElementById("laminationRate").value) || 0;
 
-    if (isNaN(l) || isNaN(b) || isNaN(r)) {
-      lamResult.innerHTML = "Enter valid numbers.";
-      return;
-    }
+  const rateSolution = (length * breadth * rate) / 100;
+  const finalPrice = rateSolution * quantity;
 
-    const rateSolution = (l * b * r) / 100;
-    const totalLaminationPrice = rateSolution * quantity;
-
-    lamResult.innerHTML = `
-      (${l} × ${b} × ₹${r}) ÷ 100 = ₹${rateSolution.toFixed(2)} per file<br>
-      Quantity: ${quantity} files × ₹${rateSolution.toFixed(2)} = 
-      <span style="color: green;">₹${totalLaminationPrice.toFixed(2)}</span>
-    `;
-  }
-
-  // Initial calculation
-  calculateLamination();
-
-  // Recalculate on any input change
-  lamLengthInput.addEventListener("input", calculateLamination);
-  lamBreadthInput.addEventListener("input", calculateLamination);
-  lamRateInput.addEventListener("input", calculateLamination);
+  const laminationQuotation = document.getElementById("laminationQuotation");
+  laminationQuotation.innerHTML = `
+    <p>Rate Solution: ₹${rateSolution.toFixed(2)} ((${length} × ${breadth} × ₹${rate}) ÷ 100)</p>
+    <p>Quantity: ${quantity} sheets</p>
+    <p>Final Lamination Price: ₹${finalPrice.toFixed(2)}</p>
+  `;
 }
 
   ////////////////////////////////////////////////////////////////
