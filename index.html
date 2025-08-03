@@ -562,8 +562,13 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function calculateFitCount(sheetW, sheetH, fileW, fileH) {
+  const fit1 = Math.floor(sheetW / fileW) * Math.floor(sheetH / fileH);
+  const fit2 = Math.floor(sheetW / fileH) * Math.floor(sheetH / fileW);
+  return Math.max(fit1, fit2);
+}
 
-  function updatePrintingQuotation() {
+function updatePrintingQuotation() {
   const printingSize = document.getElementById("printingSize").value;
   const quantity = parseInt(document.getElementById("quantity").value);
   const fileW = parseFloat(document.getElementById("width").value);
@@ -576,7 +581,6 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
 
   const boardFitCount = calculateFitCount(boardWidth, boardHeight, fileW, fileH);
 
-  // ⚠️ Stop if hospital file doesn't fit even once on board
   if (boardFitCount === 0) {
     document.getElementById("printingResult").innerHTML = `
       <div style="color: red; font-weight: bold; margin-top: 10px;">
@@ -598,15 +602,16 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
   const canCutWidth = boardWidth > mW_raw && boardWidth / 2 === mW_raw;
   const canCutHeight = boardHeight > mH_raw && boardHeight / 2 === mH_raw;
 
-  if (currentBoardData.fitCount > 1 && (canCutWidth || canCutHeight)) {
+  if (boardFitCount > 1 && (canCutWidth || canCutHeight)) {
     virtualCut = true;
   }
 
-  const fitCount = currentBoardData.fitCount || 1;
+  // Calculate sheets and cost
+  let fitCount = boardFitCount;
   let sheets = Math.ceil(quantity / fitCount);
   if (virtualCut) sheets *= 2;
 
-  // Base printing price
+  // Base printing price logic
   let basePrice;
   const normalizedSize = printingSize.replace(/\s+/g, "").toLowerCase();
 
@@ -623,13 +628,14 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
     ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
     : "";
 
-  document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
-  Selected Board Size: <b>${boardHeight} X ${boardWidth}</b><br>
-  Machine Size: <b>${printingSize}</b><br>
-  Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
-  Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
+  document.getElementById("printingResult").innerHTML = `
+    <strong>Printing Quotation:</strong><br>
+    Selected Board Size: <b>${boardHeight} X ${boardWidth}</b><br>
+    Machine Size: <b>${printingSize}</b><br>
+    Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
+    Printing Cost: ₹<b>${basePrice}</b><br>${warningText}
+  `;
 }
-
 
 /////////////////////////////////////////////////////////////////////
 function calculatePrice() {
