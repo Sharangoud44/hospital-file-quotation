@@ -563,25 +563,28 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   function updatePrintingQuotation() {
+  function updatePrintingQuotation() {
   const printingSize = document.getElementById("printingSize").value;
   const quantity = parseInt(document.getElementById("quantity").value);
   const fileW = parseFloat(document.getElementById("width").value);
   const fileH = parseFloat(document.getElementById("length").value);
 
+  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
+
+  const boardWidth = currentBoardData.width;
+  const boardHeight = currentBoardData.height;
+
   const boardFitCount = calculateFitCount(boardWidth, boardHeight, fileW, fileH);
 
-// ⚠️ Stop if hospital file doesn't fit even once on board
-if (boardFitCount === 0) {
-  printingQuotation.innerHTML = `
-    <div style="color: red; font-weight: bold; margin-top: 10px;">
-      ⚠️ Hospital file does not fit on selected board. Please choose a larger board.
-    </div>
-  `;
-  return; // Exit early, don't calculate printing cost
-}
-
-  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
+  // ⚠️ Stop if hospital file doesn't fit even once on board
+  if (boardFitCount === 0) {
+    document.getElementById("printingResult").innerHTML = `
+      <div style="color: red; font-weight: bold; margin-top: 10px;">
+        ⚠️ Hospital file does not fit on selected board. Please choose a larger board.
+      </div>
+    `;
+    return;
+  }
 
   // Gripper margin logic
   const [mW_raw, mH_raw] = printingSize.toLowerCase().split("x").map(s => parseFloat(s));
@@ -592,11 +595,8 @@ if (boardFitCount === 0) {
 
   // Virtual cut logic
   let virtualCut = false;
-  const boardW = currentBoardData.width;
-  const boardH = currentBoardData.height;
-
-  const canCutWidth = boardW > mW_raw && boardW / 2 === mW_raw;
-  const canCutHeight = boardH > mH_raw && boardH / 2 === mH_raw;
+  const canCutWidth = boardWidth > mW_raw && boardWidth / 2 === mW_raw;
+  const canCutHeight = boardHeight > mH_raw && boardHeight / 2 === mH_raw;
 
   if (currentBoardData.fitCount > 1 && (canCutWidth || canCutHeight)) {
     virtualCut = true;
@@ -624,14 +624,11 @@ if (boardFitCount === 0) {
     : "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
-  Selected Board Size: <b>${currentBoardData.height} X ${currentBoardData.width}</b><br>
+  Selected Board Size: <b>${boardHeight} X ${boardWidth}</b><br>
   Machine Size: <b>${printingSize}</b><br>
   Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
   Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
-
-}  
-
-
+}
 
 
 /////////////////////////////////////////////////////////////////////
