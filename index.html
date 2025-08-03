@@ -276,9 +276,22 @@
       </div>
 
       <div class="step">
-        <label for="laminationRate">4. Lamination</label>
-        <input type="number" id="laminationRate" value="0">
-      </div>
+  <label>4. Lamination</label>
+  <div>
+    <label>Length (in):</label>
+    <input type="number" id="lamLength" step="0.01" />
+  </div>
+  <div>
+    <label>Breadth (in):</label>
+    <input type="number" id="lamBreadth" step="0.01" />
+  </div>
+  <div>
+    <label>Lamination Rate (₹ per 100 sq.in):</label>
+    <input type="number" id="lamRate" step="0.01" value="0.60" />
+  </div>
+  <div id="laminationResult" style="margin-top: 10px; font-weight: bold;"></div>
+</div>
+
       <div class="step">
         <label for="die">5. Die</label>
         <input type="number" id="die" value="0">
@@ -641,7 +654,14 @@ function updatePrintingQuotation() {
 /////////////////////////////////////////////////////////////////////
 function calculatePrice() {
   const design = parseFloat(document.getElementById("design").value) || 0;
-  const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
+  const length = parseFloat(document.getElementById("laminationLength").value) || 0;
+const breadth = parseFloat(document.getElementById("laminationBreadth").value) || 0;
+const laminationRateValue = parseFloat(document.getElementById("laminationRate").value) || 0;
+const laminationQty = parseFloat(document.getElementById("laminationQuantity").textContent) || 0;
+
+const laminationRateSolution = (length * breadth * laminationRateValue) / 100;
+const lamination = laminationRateSolution * laminationQty;
+
   const die = parseFloat(document.getElementById("die").value) || 0;
   const punching = parseFloat(document.getElementById("punching").value) || 0;
   const pasting = parseFloat(document.getElementById("pasting").value) || 0;
@@ -652,7 +672,8 @@ function calculatePrice() {
   const printingCostMatch = document.getElementById("printingResult").innerText.match(/Printing Cost: ₹(\d+(\.\d+)?)/);
   const printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
 
-  const total = design + board + printing + laminationRate + die + punching + pasting;
+ const total = design + board + printing + lamination + die + punching + pasting;
+
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
 
@@ -664,6 +685,49 @@ document.getElementById("printingSize").addEventListener("change", () => {
   updateBoardSizes();             // ✅ STEP 4
   updatePrintingQuotation();      // ✅ STEP 4
 });
+
+  //////////////////////////////////////////////
+
+  function updateLaminationSection(length, breadth, quantity) {
+  const lamLengthInput = document.getElementById("lamLength");
+  const lamBreadthInput = document.getElementById("lamBreadth");
+  const lamRateInput = document.getElementById("lamRate");
+  const lamResult = document.getElementById("laminationResult");
+
+  // Set default values
+  lamLengthInput.value = length.toFixed(2);
+  lamBreadthInput.value = breadth.toFixed(2);
+
+  function calculateLamination() {
+    const l = parseFloat(lamLengthInput.value);
+    const b = parseFloat(lamBreadthInput.value);
+    const r = parseFloat(lamRateInput.value);
+
+    if (isNaN(l) || isNaN(b) || isNaN(r)) {
+      lamResult.innerHTML = "Enter valid numbers.";
+      return;
+    }
+
+    const rateSolution = (l * b * r) / 100;
+    const totalLaminationPrice = rateSolution * quantity;
+
+    lamResult.innerHTML = `
+      (${l} × ${b} × ₹${r}) ÷ 100 = ₹${rateSolution.toFixed(2)} per file<br>
+      Quantity: ${quantity} files × ₹${rateSolution.toFixed(2)} = 
+      <span style="color: green;">₹${totalLaminationPrice.toFixed(2)}</span>
+    `;
+  }
+
+  // Initial calculation
+  calculateLamination();
+
+  // Recalculate on any input change
+  lamLengthInput.addEventListener("input", calculateLamination);
+  lamBreadthInput.addEventListener("input", calculateLamination);
+  lamRateInput.addEventListener("input", calculateLamination);
+}
+
+  ////////////////////////////////////////////////////////////////
 </script>
 </body>
 </html>
