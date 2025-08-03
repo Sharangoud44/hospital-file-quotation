@@ -631,6 +631,7 @@ function updatePrintingQuotation() {
   document.getElementById("printingResult").innerHTML = `
     <strong>Printing Quotation:</strong><br>
     Selected Board Size: <b>${boardHeight} X ${boardWidth}</b><br>
+    Quantity Files Required: ${quantity}<br/>
     Machine Size: <b>${printingSize}</b><br>
     Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}
