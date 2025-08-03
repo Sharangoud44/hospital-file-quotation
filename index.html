@@ -611,9 +611,11 @@ function updatePrintingQuotation() {
     : "";
 
   document.getElementById("printingResult").innerHTML = `<strong>Printing Quotation:</strong><br>
-    Machine Size: <b>${printingSize}</b><br>
-    Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
-    Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
+  Selected Board Size: <b>${currentBoardData.height} X ${currentBoardData.width}</b><br>
+  Machine Size: <b>${printingSize}</b><br>
+  Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
+  Printing Cost: ₹<b>${basePrice}</b><br>${warningText}`;
+
 }
 
 
