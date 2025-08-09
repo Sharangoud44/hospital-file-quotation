@@ -695,15 +695,29 @@ function calculatePrice() {
   const punching = parseFloat(document.getElementById("punching").value) || 0;
   const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
+  // Board cost (unchanged)
   const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
   const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
 
-  const printingCostMatch = document.getElementById("printingResult").innerText.match(/Printing Cost: ₹(\d+(\.\d+)?)/);
-  const printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
+  // Only include printing cost if printing is enabled (toggle checked) AND printing section is visible
+  let printing = 0;
+  const printingToggle = document.getElementById("togglePrinting");
+  const printingSection = document.getElementById("printingSection");
+  const printingEnabled = printingToggle ? printingToggle.checked : (printingSection && printingSection.style.display !== "none");
+
+  if (printingEnabled) {
+    const printingCostMatch = document.getElementById("printingResult").innerText.match(/Printing Cost: ₹(\d+(\.\d+)?)/);
+    printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
+  } else {
+    // optional: clear any leftover printing text so user sees it's off
+    document.getElementById("printingResult").innerHTML = "";
+  }
 
   const total = design + board + printing + laminationRate + die + punching + pasting;
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
+
+  ////////////////////////////////////////////////////
 
 document.getElementById("boardRate").addEventListener("input", () => {
   if (currentBoardData) showBoardQuotation(currentBoardData);
