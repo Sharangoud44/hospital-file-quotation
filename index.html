@@ -324,15 +324,16 @@ input:checked + .slider:before {
 </div>
 
 
-   <div class="quotation-box">
+   <div class="quotation-box" style="border: 2px solid green; padding: 10px; background-color: #e8fce8;">
   <h3>Lamination Quotation</h3>
-  <label>Length: <input type="number" id="lamLength" oninput="calculateLamination()"></label><br>
-  <label>Width: <input type="number" id="lamWidth" oninput="calculateLamination()"></label><br>
-  <label>Price: <input type="number" id="lamPrice" oninput="calculateLamination()"></label><br>
-  <label>Quotation: <input type="number" id="lamQuotation" oninput="calculateLamination()"></label><br><br>
+  <label>Length: <input type="number" id="lamLength" oninput="calculateLamination()" step="0.01"></label><br>
+  <label>Width: <input type="number" id="lamWidth" oninput="calculateLamination()" step="0.01"></label><br>
+  <label>Price: <input type="number" id="lamPrice" oninput="calculateLamination()" step="0.01"></label><br>
+  <label>Quotation: <input type="number" id="lamQuotation" oninput="calculateLamination()" step="0.01"></label><br><br>
 
-  <p>Total Answer: <span id="lamTotalAnswer">0.00</span></p>
-  <p>Overall Answer: <span id="lamOverallAnswer">0.00</span></p>
+  <p id="laminationProcess" style="font-family: monospace; white-space: pre;"></p>
+  <p><strong>Total Answer:</strong> <span id="lamTotalAnswer">0.00</span></p>
+  <p><strong>Overall Answer:</strong> <span id="lamOverallAnswer">0</span></p>
 </div>
 
       <div class="step">
@@ -744,11 +745,19 @@ document.getElementById("printingSize").addEventListener("change", () => {
   const price = parseFloat(document.getElementById('lamPrice').value) || 0;
   const quotation = parseFloat(document.getElementById('lamQuotation').value) || 0;
 
-  const totalAnswer = (length * width * price) / 100;
-  document.getElementById('lamTotalAnswer').innerText = totalAnswer.toFixed(2);
+  // Step-by-step
+  const step1 = length * width * price;
+  const totalAnswer = step1 / 100;
+  const overallAnswer = Math.round(quotation * totalAnswer);
 
-  const overallAnswer = quotation * totalAnswer;
-  document.getElementById('lamOverallAnswer').innerText = overallAnswer.toFixed(2);
+  // Update process
+  document.getElementById('laminationProcess').innerText = 
+    `${length} × ${width} × ${price} = ${step1.toFixed(2)} ÷ 100 = ${totalAnswer.toFixed(2)}\n` +
+    `${quotation} × ${totalAnswer.toFixed(2)} = ${overallAnswer}`;
+
+  // Update UI
+  document.getElementById('lamTotalAnswer').innerText = totalAnswer.toFixed(2);
+  document.getElementById('lamOverallAnswer').innerText = overallAnswer;
 }
 </script>
 </body>
