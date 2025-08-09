@@ -350,10 +350,21 @@ input:checked + .slider:before {
         <label for="die">5. Die</label>
         <input type="number" id="die" value="0">
       </div>
-      <div class="step">
-        <label for="punching">6. Punching</label>
-        <input type="number" id="punching" value="0">
-      </div>
+      
+        <!-- Punching Section -->
+<div id="punchingSection" style="margin-top:20px;">
+  <h3>Punching</h3>
+  <label for="punchingRate">Rate: </label>
+  <input type="number" id="punchingRate" min="0" step="0.01" value="0" />
+  <br /><br />
+  <label for="punchingQuantity">Quantity: </label>
+  <input type="number" id="punchingQuantity" min="0" step="1" value="0" />
+  <br /><br />
+  <div id="punchingQuotation" style="font-weight:bold;">
+    Rate × Quantity = 0
+  </div>
+</div>
+        
       <div class="step">
         <label for="pasting">7. Pasting</label>
         <input type="number" id="pasting" value="0">
@@ -784,6 +795,21 @@ function calculateQuotation() {
     document.getElementById("quotationInput").value = quotation.toFixed(2);
 }
 
+   // Function to update punching quotation
+  function updatePunchingQuotation() {
+    const rate = parseFloat(document.getElementById('punchingRate').value) || 0;
+    const quantity = parseInt(document.getElementById('punchingQuantity').value) || 0;
+    const answer = (rate * quantity).toFixed(2);
+    document.getElementById('punchingQuotation').textContent = `${rate} × ${quantity} = ${answer}`;
+  }
+
+  // Attach input event listeners to update in real-time
+  document.getElementById('punchingRate').addEventListener('input', updatePunchingQuotation);
+  document.getElementById('punchingQuantity').addEventListener('input', updatePunchingQuotation);
+
+  // Initialize on page load
+  updatePunchingQuotation();
+  
 </script>
 
   
