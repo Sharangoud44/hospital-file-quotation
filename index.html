@@ -323,7 +323,6 @@ input:checked + .slider:before {
   </div>
 </div>
 
-///////////////////////////////////////////////////////////
    <div class="quotation-box">
   <h3>Lamination Quotation</h3>
   <label>Length: 
@@ -346,7 +345,7 @@ input:checked + .slider:before {
     <p><strong>Overall Answer:</strong> <span id="lamOverallAnswer">0</span></p>
   </div>
 </div>
-///////////////////////////////////////////////////////////
+
       <div class="step">
         <label for="die">5. Die</label>
         <input type="number" id="die" value="0">
@@ -369,7 +368,7 @@ input:checked + .slider:before {
 let currentBoardData = null;
 let boardDataGlobal = [];
 let printingDataGlobal = [];
-///////////////////////////////////////////////////////////////////////////
+
 function updateBoardSizes() {
   const boardType = document.getElementById("boardType").value;
   const sizePreview = document.getElementById("sizePreview");
@@ -469,7 +468,6 @@ function updateBoardSizes() {
 
 
 
-///////////////////////////////////////////////////////////////----------------------
 function getStaticBoardRate(boardType, size, gsm) {
   const key = `${boardType}-${size}-${gsm}`;
   const rates = {
@@ -506,7 +504,6 @@ function getStaticBoardRate(boardType, size, gsm) {
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 function showBoardQuotation(data) {
@@ -533,7 +530,6 @@ function showBoardQuotation(data) {
   updatePrintingQuotation(); // ✅ Only one call here
 }
 
-////////////////////////////////////////////////
 
 function updatePrintingSizes() {
   const preview = document.getElementById("printingPreview");
@@ -629,7 +625,7 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function calculateFitCount(sheetW, sheetH, fileW, fileH) {
   const fit1 = Math.floor(sheetW / fileW) * Math.floor(sheetH / fileH);
   const fit2 = Math.floor(sheetW / fileH) * Math.floor(sheetH / fileW);
@@ -706,7 +702,7 @@ function updatePrintingQuotation() {
   `;
 }
 
-/////////////////////////////////////////////////////////////////////
+
 function calculatePrice() {
   const design = parseFloat(document.getElementById("design").value) || 0;
   const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
@@ -736,7 +732,7 @@ function calculatePrice() {
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
 
-  ////////////////////////////////////////////////////
+  
 
 document.getElementById("boardRate").addEventListener("input", () => {
   if (currentBoardData) showBoardQuotation(currentBoardData);
@@ -750,7 +746,6 @@ document.getElementById("printingSize").addEventListener("change", () => {
   updatePrintingQuotation();      // ✅ STEP 4
 });
 
- ///////////////////////////////////////////////////////
 function calculateLamination() {
   const length = parseFloat(document.getElementById('lamLength').value) || 0;
   const width = parseFloat(document.getElementById('lamWidth').value) || 0;
@@ -772,7 +767,26 @@ function calculateLamination() {
   document.getElementById('lamOverallAnswer').innerText = overallAnswer;
 }
 
-  //////////////////////////////////////////////////////
+  <!-- Your existing JS logic for boards, printing, lamination etc. -->
+
+// Attach event listener to button
+document.getElementById("calculateButton").addEventListener("click", calculateQuotation);
+
+// Your calculation function
+function calculateQuotation() {
+    const length = parseFloat(document.getElementById("lengthInput").value) || 0;
+    const width = parseFloat(document.getElementById("widthInput").value) || 0;
+    const price = parseFloat(document.getElementById("priceInput").value) || 0;
+
+    const area = length * width;
+    const quotation = (area * price) / 100;
+
+    document.getElementById("quotationInput").value = quotation.toFixed(2);
+}
+
+</script>
+
+  
 </script>
 </body>
 </html>
