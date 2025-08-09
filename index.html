@@ -323,19 +323,30 @@ input:checked + .slider:before {
   </div>
 </div>
 
-
-   <div class="quotation-box" style="border: 2px solid green; padding: 10px; background-color: #e8fce8;">
+///////////////////////////////////////////////////////////
+   <div class="quotation-box">
   <h3>Lamination Quotation</h3>
-  <label>Length: <input type="number" id="lamLength" oninput="calculateLamination()" step="0.01"></label><br>
-  <label>Width: <input type="number" id="lamWidth" oninput="calculateLamination()" step="0.01"></label><br>
-  <label>Price: <input type="number" id="lamPrice" oninput="calculateLamination()" step="0.01"></label><br>
-  <label>Quotation: <input type="number" id="lamQuotation" oninput="calculateLamination()" step="0.01"></label><br><br>
+  <label>Length: 
+    <input type="number" id="lamLength" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+  </label><br>
+  <label>Width: 
+    <input type="number" id="lamWidth" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+  </label><br>
+  <label>Price: 
+    <input type="number" id="lamPrice" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+  </label><br>
+  <label>Quantity: 
+    <input type="number" id="lamQuantity" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+  </label><br><br>
 
-  <p id="laminationProcess" style="font-family: monospace; white-space: pre;"></p>
-  <p><strong>Total Answer:</strong> <span id="lamTotalAnswer">0.00</span></p>
-  <p><strong>Overall Answer:</strong> <span id="lamOverallAnswer">0</span></p>
+  <!-- Calculation Box -->
+  <div id="laminationCalcBox" style="border: 2px solid green; background-color: #e8fce8; padding: 8px;">
+    <p id="laminationProcess" style="font-family: monospace; white-space: pre; margin: 0;"></p>
+    <p><strong>Total Answer:</strong> <span id="lamTotalAnswer">0.00</span></p>
+    <p><strong>Overall Answer:</strong> <span id="lamOverallAnswer">0</span></p>
+  </div>
 </div>
-
+///////////////////////////////////////////////////////////
       <div class="step">
         <label for="die">5. Die</label>
         <input type="number" id="die" value="0">
@@ -739,26 +750,29 @@ document.getElementById("printingSize").addEventListener("change", () => {
   updatePrintingQuotation();      // ✅ STEP 4
 });
 
-  function calculateLamination() {
+ ///////////////////////////////////////////////////////
+function calculateLamination() {
   const length = parseFloat(document.getElementById('lamLength').value) || 0;
   const width = parseFloat(document.getElementById('lamWidth').value) || 0;
   const price = parseFloat(document.getElementById('lamPrice').value) || 0;
-  const quotation = parseFloat(document.getElementById('lamQuotation').value) || 0;
+  const quantity = parseFloat(document.getElementById('lamQuantity').value) || 0;
 
   // Step-by-step
   const step1 = length * width * price;
   const totalAnswer = step1 / 100;
-  const overallAnswer = Math.round(quotation * totalAnswer);
+  const overallAnswer = Math.round(quantity * totalAnswer);
 
   // Update process
   document.getElementById('laminationProcess').innerText = 
     `${length} × ${width} × ${price} = ${step1.toFixed(2)} ÷ 100 = ${totalAnswer.toFixed(2)}\n` +
-    `${quotation} × ${totalAnswer.toFixed(2)} = ${overallAnswer}`;
+    `${quantity} × ${totalAnswer.toFixed(2)} = ${overallAnswer}`;
 
   // Update UI
   document.getElementById('lamTotalAnswer').innerText = totalAnswer.toFixed(2);
   document.getElementById('lamOverallAnswer').innerText = overallAnswer;
 }
+
+  //////////////////////////////////////////////////////
 </script>
 </body>
 </html>
