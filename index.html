@@ -183,6 +183,43 @@
     pointer-events: none;
     z-index: 10;
   }
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #28a745;
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
 
 
 </style>
@@ -262,18 +299,30 @@
       </div>
 
       <div class="step">
-        <label>3. Printing</label>
-        <select id="printingSize" onchange="updatePrintingQuotation()">
-          <option value="19x26">19 X 26</option>
-          <option value="15x20">15 X 20</option>
-          <option value="18x23">18 X 23</option>
-          <option value="22x28">22 X 28</option>
-          <option value="13x19">13 X 19 (₹15/sheet)</option>
-          <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
-        </select>
-        <div id="printingPreview" class="size-preview" id="printingSizePreview"></div>
-        <div id="printingResult"></div>
-      </div>
+        <div class="field" style="display:flex;align-items:center;gap:10px;">
+  <label style="margin:0;">Enable Printing</label>
+  <label class="switch">
+    <input type="checkbox" id="togglePrinting">
+    <span class="slider round"></span>
+  </label>
+</div>
+
+        <div id="printingSection" style="display:none;">
+  <div class="step">
+    <label>3. Printing</label>
+    <select id="printingSize" onchange="updatePrintingQuotation()">
+      <option value="19x26">19 X 26</option>
+      <option value="15x20">15 X 20</option>
+      <option value="18x23">18 X 23</option>
+      <option value="22x28">22 X 28</option>
+      <option value="13x19">13 X 19 (₹15/sheet)</option>
+      <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
+    </select>
+    <div id="printingPreview" class="size-preview"></div>
+    <div id="printingResult"></div>
+  </div>
+</div>
+
 
       <div class="step">
         <label for="laminationRate">4. Lamination</label>
@@ -658,6 +707,9 @@ function calculatePrice() {
 
 document.getElementById("boardRate").addEventListener("input", () => {
   if (currentBoardData) showBoardQuotation(currentBoardData);
+});
+document.getElementById("togglePrinting").addEventListener("change", function() {
+  document.getElementById("printingSection").style.display = this.checked ? "block" : "none";
 });
 
 document.getElementById("printingSize").addEventListener("change", () => {
