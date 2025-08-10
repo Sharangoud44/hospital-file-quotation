@@ -310,7 +310,7 @@ input:checked + .slider:before {
         <div id="printingSection" style="display:none;">
   <div class="step">
     <label>3. Printing</label>
-    <select id="printingSize" onchange="updatePrintingQuotation()">
+    <select id="printingSize" onchange="updateBoardSizes(); updatePrintingQuotation();">
       <option value="19x26">19 X 26</option>
       <option value="15x20">15 X 20</option>
       <option value="18x23">18 X 23</option>
@@ -357,11 +357,11 @@ input:checked + .slider:before {
   <h3>Punching</h3>
 
   <label for="punchingRate">Rate: </label>
-  <input type="number" id="punchingRate" min="0" step="0.01" placeholder="Enter rate">
+  <input type="number" id="punchingRate" min="0" step="0.01" placeholder="Enter rate" value="0">
   <br><br>
 
   <label for="punchingQuantity">Quantity: </label>
-  <input type="number" id="punchingQuantity" min="0" step="1" placeholder="Enter quantity">
+  <input type="number" id="punchingQuantity" min="0" step="1" placeholder="Enter quantity" value="0">
   <br><br>
 
   <div>
@@ -370,44 +370,105 @@ input:checked + .slider:before {
 </div>
 
 <script>
-function updatePunchingTotal() {
-    const rate = parseFloat(document.getElementById("punchingRate").value) || 0;
-    const qty = parseInt(document.getElementById("punchingQuantity").value) || 0;
-    const total = rate * qty;
-    document.getElementById("punchingTotal").textContent = total.toFixed(2);
-}
-
-// Update calculation when rate or quantity changes
-document.getElementById("punchingRate").addEventListener("input", updatePunchingTotal);
-document.getElementById("punchingQuantity").addEventListener("input", updatePunchingTotal);
-</script>
-
-
-        
-      <div class="step">
-        <label for="pasting">7. Pasting</label>
-        <input type="number" id="pasting" value="0">
-      </div>
-    </div>
-
-    <button onclick="calculatePrice()">Calculate Total</button>
-    <div class="total" id="total">Total: ₹0.00</div>
-  </div>
-
-<script>
+/* -------------------------
+   Globals
+   ------------------------- */
 let currentBoardData = null;
 let boardDataGlobal = [];
 let printingDataGlobal = [];
+let printingCostGlobal = 0;
 
+/* -------------------------
+   Helpers
+   ------------------------- */
+
+// parse size string like "30 X 40" or "13x19" -> [num,num]
+function parseSize(sizeStr) {
+  if (!sizeStr) return [0,0];
+  const norm = sizeStr.replace(/\s+/g,'').toLowerCase(); // "30x40" or "13.4x19.8"
+  const parts = norm.split('x');
+  return parts.map(s => parseFloat(s) || 0);
+}
+
+// Convert file inputs to inches (if unit is cm)
+function getFileSizeInInches() {
+  const unit = document.getElementById('unit').value;
+  let fileW = parseFloat(document.getElementById('width').value) || 0;
+  let fileH = parseFloat(document.getElementById('length').value) || 0;
+
+  if (unit === 'cm') {
+    // 1 inch = 2.54 cm
+    fileW = fileW / 2.54;
+    fileH = fileH / 2.54;
+  }
+  return { fileW, fileH };
+}
+
+/* 
+  extrasInRect: maximum number of pieces that can fit in a rectangle (rectW x rectH)
+  trying both orientations inside that rectangle.
+*/
+function extrasInRect(rectW, rectH, prodW, prodH) {
+  if (rectW <= 0 || rectH <= 0) return 0;
+  const a = Math.floor(rectW / prodW) * Math.floor(rectH / prodH);
+  const b = Math.floor(rectW / prodH) * Math.floor(rectH / prodW);
+  return Math.max(0, a, b);
+}
+
+/*
+  calculateMaxUps(sheetW, sheetH, prodW, prodH):
+  improved packing: grid + extras in right strip + bottom strip minus overlap.
+  checks both orientation choices and returns max pieces (ups).
+*/
+function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
+  if (!sheetW || !sheetH || !prodW || !prodH) return 0;
+
+  // orientation 1 (product W x H)
+  const fitX1 = Math.floor(sheetW / prodW);
+  const fitY1 = Math.floor(sheetH / prodH);
+  const base1 = fitX1 * fitY1;
+
+  const leftoverW1 = Math.max(0, sheetW - fitX1 * prodW);
+  const leftoverH1 = Math.max(0, sheetH - fitY1 * prodH);
+
+  const extraRight1 = extrasInRect(leftoverW1, sheetH, prodW, prodH);
+  const extraBottom1 = extrasInRect(sheetW, leftoverH1, prodW, prodH);
+  const overlap1 = extrasInRect(leftoverW1, leftoverH1, prodW, prodH);
+
+  const total1 = base1 + extraRight1 + extraBottom1 - overlap1;
+
+  // orientation 2 (rotated product H x W)
+  const fitX2 = Math.floor(sheetW / prodH);
+  const fitY2 = Math.floor(sheetH / prodW);
+  const base2 = fitX2 * fitY2;
+
+  const leftoverW2 = Math.max(0, sheetW - fitX2 * prodH);
+  const leftoverH2 = Math.max(0, sheetH - fitY2 * prodW);
+
+  const extraRight2 = extrasInRect(leftoverW2, sheetH, prodW, prodH);
+  const extraBottom2 = extrasInRect(sheetW, leftoverH2, prodW, prodH);
+  const overlap2 = extrasInRect(leftoverW2, leftoverH2, prodW, prodH);
+
+  const total2 = base2 + extraRight2 + extraBottom2 - overlap2;
+
+  return Math.max(0, total1, total2);
+}
+
+/* -------------------------
+   Board logic
+   ------------------------- */
 function updateBoardSizes() {
   const boardType = document.getElementById("boardType").value;
   const sizePreview = document.getElementById("sizePreview");
   sizePreview.innerHTML = "";
 
-  const fileW = parseFloat(document.getElementById("width").value);
-  const fileH = parseFloat(document.getElementById("length").value);
-  const quantity = parseInt(document.getElementById("quantity").value);
-  if (!fileW || !fileH || !quantity) return;
+  const { fileW, fileH } = getFileSizeInInches(); // converted sizes in inches
+  const quantity = parseInt(document.getElementById("quantity").value) || 0;
+  if (!fileW || !fileH || !quantity) {
+    document.getElementById('boardResult').innerHTML = '';
+    boardDataGlobal = [];
+    return;
+  }
 
   let sizes = [];
   if (boardType === "Art Card") {
@@ -428,15 +489,16 @@ function updateBoardSizes() {
   let bestSizeGlobal = null;
 
   boardDataGlobal = sizes.map(size => {
-    const [hRaw, wRaw] = size.split(" X ").map(parseFloat);
+    // parse size robustly
+    const [hRaw, wRaw] = parseSize(size);
+    // apply your sheet safety margin
     const h = hRaw - 0.5;
     const w = wRaw - 0.5;
 
-    let fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
-    let fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
-    let fitCount = Math.max(fit1, fit2);
-    let used = fitCount * fileW * fileH;
-    let waste = w * h - used;
+    // Use improved packing to get fitCount
+    const fitCount = calculateMaxUps(w, h, fileW, fileH);
+    const used = fitCount * fileW * fileH;
+    const waste = (w * h) - used;
 
     if (waste < bestWastage && fitCount > 0) {
       bestWastage = waste;
@@ -447,21 +509,21 @@ function updateBoardSizes() {
   });
 
   const printingSize = document.getElementById("printingSize").value;
-  const [mW, mH] = printingSize ? printingSize.split("x").map(parseFloat) : [null, null];
+  const [mW, mH] = printingSize ? parseSize(printingSize) : [null, null];
 
   boardDataGlobal.forEach(data => {
     const card = document.createElement("div");
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // ✅ Virtual cut line logic on board card
+    // Virtual cut line logic on board card
     if (mW && mH && data.fitCount > 1) {
-      if (data.height > mH && data.height / 2 === mH) {
+      if (data.height > mH && Math.abs(data.height / 2 - mH) < 0.0001) {
         const line = document.createElement("div");
         line.className = "cut-line-horizontal";
         card.appendChild(line);
       }
-      if (data.width > mW && data.width / 2 === mW) {
+      if (data.width > mW && Math.abs(data.width / 2 - mW) < 0.0001) {
         const line = document.createElement("div");
         line.className = "cut-line-visual";
         card.appendChild(line);
@@ -534,13 +596,13 @@ function getStaticBoardRate(boardType, size, gsm) {
 
 
 
-
-
 function showBoardQuotation(data) {
   currentBoardData = data;  // ✅ This is enough
-  const quantity = parseInt(document.getElementById("quantity").value);
+  const quantity = parseInt(document.getElementById("quantity").value) || 0;
   const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
-  const sheets = Math.ceil(quantity / data.fitCount);
+
+  // guard: fitCount could be zero
+  const sheets = data.fitCount > 0 ? Math.ceil(quantity / data.fitCount) : 0;
   const boardCost = sheets * boardRate;
 
   document.getElementById("boardResult").innerHTML = `<strong>Board Quotation:</strong><br>
@@ -557,41 +619,43 @@ function showBoardQuotation(data) {
     }
   });
 
-  updatePrintingQuotation(); // ✅ Only one call here
+  updatePrintingQuotation(); // update printing with current board
 }
 
-
+/* -------------------------
+   Printing logic (IMPROVED ups)
+   ------------------------- */
 function updatePrintingSizes() {
   const preview = document.getElementById("printingPreview");
   preview.innerHTML = "";
 
-  const fileW = parseFloat(document.getElementById("width").value);
-  const fileH = parseFloat(document.getElementById("length").value);
+  const { fileW, fileH } = getFileSizeInInches();
   if (!fileW || !fileH) return;
 
-const sizes = ["19 X 26", "15 X 20", "18 X 23", "22 X 28", "13.4 x 19.8", "13x19"];
+  // canonical sizes (in inches)
+  const sizes = ["19 X 26", "15 X 20", "18 X 23", "22 X 28", "13.4 X 19.8", "13 X 19"];
 
-// ✅ Ensure 13x19 option is in the dropdown
-const printingSizeDropdown = document.getElementById("printingSize");
-if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")) {
-  const option = document.createElement("option");
-  option.value = "13x19";
-  option.textContent = "13 X 19 (Flat ₹15/sheet)";
-  printingSizeDropdown.appendChild(option);
-}
+  // ensure 13x19 present in dropdown (keeps your original dropdown safe)
+  const printingSizeDropdown = document.getElementById("printingSize");
+  if (!Array.from(printingSizeDropdown.options).some(opt => opt.value.toLowerCase() === "13x19")) {
+    const option = document.createElement("option");
+    option.value = "13x19";
+    option.textContent = "13 X 19 (Flat ₹15/sheet)";
+    printingSizeDropdown.appendChild(option);
+  }
+
   let bestWastage = Infinity;
   let bestFit = null;
 
   printingDataGlobal = sizes.map(size => {
-    const [hRaw, wRaw] = size.toLowerCase().split("x").map(v => parseFloat(v.trim()));
+    const [hRaw, wRaw] = parseSize(size);
     const h = hRaw - 0.5;
     const w = wRaw - 0.5;
 
-    const fit1 = Math.floor(w / fileW) * Math.floor(h / fileH);
-    const fit2 = Math.floor(w / fileH) * Math.floor(h / fileW);
-    const fitCount = Math.max(fit1, fit2);
+    // Use improved packing to compute fitCount
+    const fitCount = calculateMaxUps(w, h, fileW, fileH);
     const used = fitCount * fileW * fileH;
-    const waste = w * h - used;
+    const waste = (w * h) - used;
 
     if (waste < bestWastage && fitCount > 0) {
       bestWastage = waste;
@@ -612,25 +676,12 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
     card.className = "size-card";
     if (data.size === bestFit) card.classList.add("best");
 
-    // // ✅ Show virtual cut line if board larger than printer
-    // if (currentBoardData) {
-    //   if (currentBoardData.height > data.height && currentBoardData.height / 2 <= data.height) {
-    //     const cutLine = document.createElement("div");
-    //     cutLine.className = "cut-line-horizontal";
-    //     card.appendChild(cutLine);
-    //   } else if (currentBoardData.width > data.width && currentBoardData.width / 2 <= data.width) {
-    //     const cutLine = document.createElement("div");
-    //     cutLine.className = "cut-line-visual";
-    //     card.appendChild(cutLine);
-    //   }
-    // }
-
     card.onclick = () => {
       document.getElementById("printingSize").value = data.size;
       updatePrintingQuotation();
     };
 
-    card.innerHTML += `<strong>${data.size}</strong><br>`;
+    card.innerHTML += `<strong>${data.size.replace('x',' X ')}</strong><br>`;
     for (let i = 0; i < data.fitCount; i++) {
       const dot = document.createElement("div");
       dot.className = "mini-box";
@@ -653,62 +704,64 @@ if (!Array.from(printingSizeDropdown.options).some(opt => opt.value === "13x19")
   }
 }
 
-
-
-
-function calculateFitCount(sheetW, sheetH, fileW, fileH) {
-  const fit1 = Math.floor(sheetW / fileW) * Math.floor(sheetH / fileH);
-  const fit2 = Math.floor(sheetW / fileH) * Math.floor(sheetH / fileW);
-  return Math.max(fit1, fit2);
-}
-
 function updatePrintingQuotation() {
-  const printingSize = document.getElementById("printingSize").value;
-  const quantity = parseInt(document.getElementById("quantity").value);
-  const fileW = parseFloat(document.getElementById("width").value);
-  const fileH = parseFloat(document.getElementById("length").value);
+  const printingSizeRaw = document.getElementById("printingSize").value;
+  const quantity = parseInt(document.getElementById("quantity").value) || 0;
+  const { fileW, fileH } = getFileSizeInInches();
 
-  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSize) return;
+  // reset global
+  printingCostGlobal = 0;
 
+  if (!currentBoardData || !quantity || !fileW || !fileH || !printingSizeRaw) {
+    document.getElementById("printingResult").innerHTML = "";
+    return;
+  }
+
+  // Board fit check (improved)
   const boardWidth = currentBoardData.width;
   const boardHeight = currentBoardData.height;
-
-  const boardFitCount = calculateFitCount(boardWidth, boardHeight, fileW, fileH);
-
-  if (boardFitCount === 0) {
+  const boardFitCount = calculateMaxUps(boardWidth - 0.5, boardHeight - 0.5, fileW, fileH);
+  if (!boardFitCount || boardFitCount === 0) {
     document.getElementById("printingResult").innerHTML = `
       <div style="color: red; font-weight: bold; margin-top: 10px;">
         ⚠️ Hospital file does not fit on selected board. Please choose a larger board.
       </div>
     `;
+    printingCostGlobal = 0;
     return;
   }
 
-  // Gripper margin logic
-  const [mW_raw, mH_raw] = printingSize.toLowerCase().split("x").map(s => parseFloat(s));
-  const mW = mW_raw - 0.5;
-  const mH = mH_raw - 0.5;
+  // parse printing machine size (like "13x19" or "19x26")
+  const [mW_raw, mH_raw] = parseSize(printingSizeRaw);
+  const mW = mW_raw - 0.5; // machine usable width
+  const mH = mH_raw - 0.5; // machine usable height
 
-  const isTooSmall = fileW > mW || fileH > mH;
+  // Check machine fit size (is file too large for machine?)
+  const isTooSmall = (fileW > mW) || (fileH > mH);
 
-  // Virtual cut logic
-  let virtualCut = false;
-  const canCutWidth = boardWidth > mW_raw && boardWidth / 2 === mW_raw;
-  const canCutHeight = boardHeight > mH_raw && boardHeight / 2 === mH_raw;
+  // Calculate ups using improved algorithm
+  const ups = calculateMaxUps(mW, mH, fileW, fileH);
 
-  if (boardFitCount > 1 && (canCutWidth || canCutHeight)) {
-    virtualCut = true;
+  if (ups === 0) {
+    document.getElementById("printingResult").innerHTML = `
+      <div style="color: red; font-weight:bold;">⚠️ File cannot be printed on selected machine (no fit).</div>
+    `;
+    printingCostGlobal = 0;
+    return;
   }
 
-  // Calculate sheets and cost
-  let fitCount = boardFitCount;
-  let sheets = Math.ceil(quantity / fitCount);
+  // Virtual cut logic (keeps your existing doubling if a virtual cut is needed)
+  let virtualCut = false;
+  const canCutWidth = boardWidth > mW_raw && Math.abs(boardWidth / 2 - mW_raw) < 0.0001;
+  const canCutHeight = boardHeight > mH_raw && Math.abs(boardHeight / 2 - mH_raw) < 0.0001;
+  if (boardFitCount > 1 && (canCutWidth || canCutHeight)) virtualCut = true;
+
+  let sheets = Math.ceil(quantity / ups);
   if (virtualCut) sheets *= 2;
 
-  // Base printing price logic
+  // pricing rules (kept your original structure)
   let basePrice;
-  const normalizedSize = printingSize.replace(/\s+/g, "").toLowerCase();
-
+  const normalizedSize = printingSizeRaw.replace(/\s+/g, "").toLowerCase();
   if (normalizedSize === "13x19") {
     basePrice = sheets * 15;
   } else if (normalizedSize === "13.4x19.8") {
@@ -718,107 +771,126 @@ function updatePrintingQuotation() {
     if (sheets > 3000) basePrice += 1000;
   }
 
-  const warningText = isTooSmall
-    ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>`
-    : "";
+  printingCostGlobal = basePrice;
+
+  const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
 
   document.getElementById("printingResult").innerHTML = `
     <strong>Printing Quotation:</strong><br>
     Selected Board Size: <b>${boardHeight} X ${boardWidth}</b><br>
     Quantity Files Required: ${quantity}<br/>
-    Machine Size: <b>${printingSize}</b><br>
+    Machine Size: <b>${printingSizeRaw.replace('x',' X ')}</b><br>
+    Ups on Machine: <b>${ups}</b><br>
     Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}
   `;
 }
 
-
-function calculatePrice() {
-  const design = parseFloat(document.getElementById("design").value) || 0;
-  const laminationRate = parseFloat(document.getElementById("laminationRate").value) || 0;
-  const die = parseFloat(document.getElementById("die").value) || 0;
-  const punching = parseFloat(document.getElementById("punching").value) || 0;
-  const pasting = parseFloat(document.getElementById("pasting").value) || 0;
-
-  // Board cost (unchanged)
-  const boardCostMatch = document.getElementById("boardResult").innerText.match(/Board Cost: ₹(\d+(\.\d+)?)/);
-  const board = boardCostMatch ? parseFloat(boardCostMatch[1]) : 0;
-
-  // Only include printing cost if printing is enabled (toggle checked) AND printing section is visible
-  let printing = 0;
-  const printingToggle = document.getElementById("togglePrinting");
-  const printingSection = document.getElementById("printingSection");
-  const printingEnabled = printingToggle ? printingToggle.checked : (printingSection && printingSection.style.display !== "none");
-
-  if (printingEnabled) {
-    const printingCostMatch = document.getElementById("printingResult").innerText.match(/Printing Cost: ₹(\d+(\.\d+)?)/);
-    printing = printingCostMatch ? parseFloat(printingCostMatch[1]) : 0;
-  } else {
-    // optional: clear any leftover printing text so user sees it's off
-    document.getElementById("printingResult").innerHTML = "";
-  }
-
-  const total = design + board + printing + laminationRate + die + punching + pasting;
-  document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
-}
-
-  
-
-document.getElementById("boardRate").addEventListener("input", () => {
-  if (currentBoardData) showBoardQuotation(currentBoardData);
-});
-document.getElementById("togglePrinting").addEventListener("change", function() {
-  document.getElementById("printingSection").style.display = this.checked ? "block" : "none";
-});
-
-document.getElementById("printingSize").addEventListener("change", () => {
-  updateBoardSizes();             // ✅ STEP 4
-  updatePrintingQuotation();      // ✅ STEP 4
-});
-
+/* -------------------------
+   Lamination & Punching
+   ------------------------- */
 function calculateLamination() {
   const length = parseFloat(document.getElementById('lamLength').value) || 0;
   const width = parseFloat(document.getElementById('lamWidth').value) || 0;
   const price = parseFloat(document.getElementById('lamPrice').value) || 0;
   const quantity = parseFloat(document.getElementById('lamQuantity').value) || 0;
 
-  // Step-by-step
   const step1 = length * width * price;
   const totalAnswer = step1 / 100;
   const overallAnswer = Math.round(quantity * totalAnswer);
 
-  // Update process
-  document.getElementById('laminationProcess').innerText = 
+  document.getElementById('laminationProcess').innerText =
     `${length} × ${width} × ${price} = ${step1.toFixed(2)} ÷ 100 = ${totalAnswer.toFixed(2)}\n` +
     `${quantity} × ${totalAnswer.toFixed(2)} = ${overallAnswer}`;
 
-  // Update UI
   document.getElementById('lamTotalAnswer').innerText = totalAnswer.toFixed(2);
   document.getElementById('lamOverallAnswer').innerText = overallAnswer;
+
+  return overallAnswer; // return numeric lamination cost
 }
 
-  <!-- Your existing JS logic for boards, printing, lamination etc. -->
+// punching UI update
+function updatePunchingTotal() {
+  const rate = parseFloat(document.getElementById("punchingRate").value) || 0;
+  const qty = parseInt(document.getElementById("punchingQuantity").value) || 0;
+  const total = rate * qty;
+  document.getElementById("punchingTotal").textContent = total.toFixed(2);
+}
+document.getElementById("punchingRate").addEventListener("input", updatePunchingTotal);
+document.getElementById("punchingQuantity").addEventListener("input", updatePunchingTotal);
 
-// Attach event listener to button
-document.getElementById("calculateButton").addEventListener("click", calculateQuotation);
+/* -------------------------
+   Total calculation
+   ------------------------- */
+function calculatePrice() {
+  const design = parseFloat(document.getElementById("design").value) || 0;
+  const die = parseFloat(document.getElementById("die").value) || 0;
+  const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
-// Your calculation function
-function calculateQuotation() {
-    const length = parseFloat(document.getElementById("lengthInput").value) || 0;
-    const width = parseFloat(document.getElementById("widthInput").value) || 0;
-    const price = parseFloat(document.getElementById("priceInput").value) || 0;
+  // Board cost: compute from currentBoardData rather than parsing text (more reliable)
+  let board = 0;
+  if (currentBoardData && currentBoardData.fitCount && currentBoardData.fitCount > 0) {
+    const quantity = parseInt(document.getElementById("quantity").value) || 0;
+    const sheets = Math.ceil(quantity / currentBoardData.fitCount);
+    const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
+    board = sheets * boardRate;
+  }
 
-    const area = length * width;
-    const quotation = (area * price) / 100;
+  // Printing: only include if toggle enabled and printingCostGlobal exists
+  const printingToggle = document.getElementById("togglePrinting");
+  const printingEnabled = printingToggle && printingToggle.checked;
+  let printing = 0;
+  if (printingEnabled) {
+    printing = printingCostGlobal || 0;
+  } else {
+    document.getElementById("printingResult").innerHTML = "";
+    printingCostGlobal = 0;
+  }
 
-    document.getElementById("quotationInput").value = quotation.toFixed(2);
+  // Lamination
+  const laminationCost = calculateLamination() || 0;
+
+  // Punching (read the computed punchingTotal)
+  const punching = parseFloat(document.getElementById("punchingTotal").textContent) || 0;
+
+  const total = design + board + printing + laminationCost + die + punching + pasting;
+  document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
 }
 
+/* -------------------------
+   Event wiring
+   ------------------------- */
+document.getElementById("boardRate").addEventListener("input", () => {
+  if (currentBoardData) showBoardQuotation(currentBoardData);
+});
+document.getElementById("togglePrinting").addEventListener("change", function() {
+  document.getElementById("printingSection").style.display = this.checked ? "block" : "none";
+  if (this.checked) {
+    updatePrintingSizes();
+    updatePrintingQuotation();
+  } else {
+    printingCostGlobal = 0;
+    document.getElementById("printingResult").innerHTML = "";
+  }
+});
 
-  
+document.getElementById("printingSize").addEventListener("change", () => {
+  updateBoardSizes();
+  updatePrintingQuotation();
+});
+
+document.getElementById("unit").addEventListener("change", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
+document.getElementById("gsm").addEventListener("change", updateBoardSizes);
+document.getElementById("quantity").addEventListener("input", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
+
+// Calculate total button
+// your original button uses inline onclick -> calculatePrice()
+// keep inline onclick on the button to call calculatePrice()
+
+// initialize previews
+updateBoardSizes();
+updatePrintingSizes();
 </script>
 
-  
-</script>
 </body>
 </html>
