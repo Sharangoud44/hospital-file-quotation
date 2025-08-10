@@ -351,7 +351,7 @@ input:checked + .slider:before {
         <input type="number" id="die" value="0">
       </div>
       
-  <!-- Punching Section -->
+<!-- Punching Section -->
 <div id="punchingSection" style="margin-top:20px;">
   <h3>Punching</h3>
   
@@ -364,10 +364,10 @@ input:checked + .slider:before {
   <br><br>
   
   <div>
-    Rate × Quantity = <span id="punchingTotal">punchingRate * punchingQuantity </span>
+    Rate × Quantity = <span id="punchingTotal">0</span>
   </div>
-
-  <!-- Hidden input to store calculated punching cost -->
+  
+  <!-- Hidden input so calculatePrice() works -->
   <input type="hidden" id="punching" value="0">
 </div>
 
@@ -807,24 +807,20 @@ function calculateQuotation() {
 function calculatePunching() {
     let rate = parseFloat(document.getElementById("punchingRate").value) || 0;
     let qty = parseFloat(document.getElementById("punchingQuantity").value) || 0;
-
     let total = rate * qty;
-
-    // Update the visible value
     document.getElementById("punchingTotal").textContent = total.toFixed(2);
-
-    // Update hidden input so calculatePrice() can read it
-    document.getElementById("punching").value = total.toFixed(2);
-
-    // Recalculate the total price immediately
-    calculatePrice();
+    document.getElementById("punching").value = total.toFixed(2); // for calculatePrice()
 }
+
+// Update live when typing
+document.getElementById("punchingRate").addEventListener("input", calculatePunching);
+document.getElementById("punchingQuantity").addEventListener("input", calculatePunching);
 
 // Attach events after page loads
 document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("punchingRate").addEventListener("input", calculatePunching);
     document.getElementById("punchingQuantity").addEventListener("input", calculatePunching);
-});
+}
 
 
   
