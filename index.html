@@ -369,6 +369,19 @@ input:checked + .slider:before {
   </div>
 </div>
 
+      <div class="step">
+        <label for="pasting">7. Pasting</label>
+        <!-- ADDED pasting input (you asked for it after punching) -->
+        <input type="number" id="pasting" value="0" placeholder="Pasting ₹">
+      </div>
+
+    </div>
+
+    <!-- ADDED Calculate button and total display (placed after Pasting as requested) -->
+    <button onclick="calculatePrice()">Calculate Total</button>
+    <div class="total" id="total">Total: ₹0.00</div>
+  </div>
+
 <script>
 /* -------------------------
    Globals
@@ -592,6 +605,8 @@ function getStaticBoardRate(boardType, size, gsm) {
   };
   return rates[key] || "Rate-15/-";
 }
+
+
 
 
 
@@ -882,10 +897,6 @@ document.getElementById("printingSize").addEventListener("change", () => {
 document.getElementById("unit").addEventListener("change", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
 document.getElementById("gsm").addEventListener("change", updateBoardSizes);
 document.getElementById("quantity").addEventListener("input", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
-
-// Calculate total button
-// your original button uses inline onclick -> calculatePrice()
-// keep inline onclick on the button to call calculatePrice()
 
 // initialize previews
 updateBoardSizes();
