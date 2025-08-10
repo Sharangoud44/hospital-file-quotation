@@ -351,6 +351,7 @@ input:checked + .slider:before {
         <input type="number" id="die" value="0">
       </div>
       
+
 <!-- Punching Section -->
 <div id="punchingSection" style="margin-top:20px;">
   <h3>Punching</h3>
@@ -368,6 +369,18 @@ input:checked + .slider:before {
   </div>
 </div>
 
+<script>
+function updatePunchingTotal() {
+    const rate = parseFloat(document.getElementById("punchingRate").value) || 0;
+    const qty = parseInt(document.getElementById("punchingQuantity").value) || 0;
+    const total = rate * qty;
+    document.getElementById("punchingTotal").textContent = total.toFixed(2);
+}
+
+// Update calculation when rate or quantity changes
+document.getElementById("punchingRate").addEventListener("input", updatePunchingTotal);
+document.getElementById("punchingQuantity").addEventListener("input", updatePunchingTotal);
+</script>
 
 
         
@@ -801,16 +814,6 @@ function calculateQuotation() {
     document.getElementById("quotationInput").value = quotation.toFixed(2);
 }
 
-function updatePunchingTotal() {
-    const rate = parseFloat(document.getElementById("punchingRate").value) || 0;
-    const qty = parseInt(document.getElementById("punchingQuantity").value) || 0;
-    const total = rate * qty;
-    document.getElementById("punchingTotal").textContent = total.toFixed(2);
-}
-
-// Update calculation when rate or quantity changes
-document.getElementById("punchingRate").addEventListener("input", updatePunchingTotal);
-document.getElementById("punchingQuantity").addEventListener("input", updatePunchingTotal);
 
   
 </script>
