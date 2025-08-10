@@ -799,19 +799,20 @@ function calculateQuotation() {
 }
 
    // Function to update punching quotation
-    function updatePunchingQuotation() {
+window.addEventListener('DOMContentLoaded', () => {
+  function updatePunchingQuotation() {
     const rate = parseFloat(document.getElementById('punchingRate').value) || 0;
     const quantity = parseInt(document.getElementById('punchingQuantity').value) || 0;
     const answer = (rate * quantity).toFixed(2);
     document.getElementById('punchingQuotation').textContent = `${rate} × ${quantity} = ${answer}`;
   }
 
-  // Attach event listeners to inputs
   document.getElementById('punchingRate').addEventListener('input', updatePunchingQuotation);
   document.getElementById('punchingQuantity').addEventListener('input', updatePunchingQuotation);
 
-  // Run once on page load to initialize the value
   updatePunchingQuotation();
+});
+
   
 </script>
 
