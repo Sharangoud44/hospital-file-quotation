@@ -746,17 +746,16 @@ function updatePrintingQuotation() {
     return;
   }
 
-  // parse printing machine size (like "13x19" or "19x26")
+  // parse printing machine size
   const [mW_raw, mH_raw] = parseSize(printingSizeRaw);
   const mW = mW_raw - 0.5; // machine usable width
   const mH = mH_raw - 0.5; // machine usable height
 
-  // Check machine fit size (is file too large for machine?)
+  // Check machine fit size
   const isTooSmall = (fileW > mW) || (fileH > mH);
 
-  // Calculate ups using improved algorithm
+  // Calculate ups on machine
   const ups = calculateMaxUps(mW, mH, fileW, fileH);
-
   if (ups === 0) {
     document.getElementById("printingResult").innerHTML = `
       <div style="color: red; font-weight:bold;">⚠️ File cannot be printed on selected machine (no fit).</div>
@@ -765,16 +764,22 @@ function updatePrintingQuotation() {
     return;
   }
 
-  // Virtual cut logic (keeps your existing doubling if a virtual cut is needed)
+  // --- NEW: compute total board sheets needed (same logic as showBoardQuotation)
+  const totalSheetsNeeded = currentBoardData && currentBoardData.fitCount > 0
+    ? Math.ceil(quantity / currentBoardData.fitCount)
+    : 0;
+
+  // Virtual cut detection
   let virtualCut = false;
   const canCutWidth = boardWidth > mW_raw && Math.abs(boardWidth / 2 - mW_raw) < 0.0001;
   const canCutHeight = boardHeight > mH_raw && Math.abs(boardHeight / 2 - mH_raw) < 0.0001;
   if (boardFitCount > 1 && (canCutWidth || canCutHeight)) virtualCut = true;
 
-  let sheets = Math.ceil(quantity / ups);
+  // Use totalSheetsNeeded as the base (user requested). Double if virtual cut.
+  let sheets = totalSheetsNeeded;
   if (virtualCut) sheets *= 2;
 
-  // pricing rules (kept your original structure)
+  // pricing rules (unchanged)
   let basePrice;
   const normalizedSize = printingSizeRaw.replace(/\s+/g, "").toLowerCase();
   if (normalizedSize === "13x19") {
@@ -800,6 +805,7 @@ function updatePrintingQuotation() {
     Printing Cost: ₹<b>${basePrice}</b><br>${warningText}
   `;
 }
+
 
 /* -------------------------
    Lamination & Punching
