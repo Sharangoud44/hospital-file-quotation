@@ -441,36 +441,20 @@ function extrasInRect(rectW, rectH, prodW, prodH) {
 function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
   if (!sheetW || !sheetH || !prodW || !prodH) return 0;
 
-  // orientation 1 (product W x H)
+  // Orientation 1 (normal)
   const fitX1 = Math.floor(sheetW / prodW);
   const fitY1 = Math.floor(sheetH / prodH);
-  const base1 = fitX1 * fitY1;
+  const total1 = fitX1 * fitY1;
 
-  const leftoverW1 = Math.max(0, sheetW - fitX1 * prodW);
-  const leftoverH1 = Math.max(0, sheetH - fitY1 * prodH);
-
-  const extraRight1 = extrasInRect(leftoverW1, sheetH, prodW, prodH);
-  const extraBottom1 = extrasInRect(sheetW, leftoverH1, prodW, prodH);
-  const overlap1 = extrasInRect(leftoverW1, leftoverH1, prodW, prodH);
-
-  const total1 = base1 + extraRight1 + extraBottom1 - overlap1;
-
-  // orientation 2 (rotated product H x W)
+  // Orientation 2 (rotated)
   const fitX2 = Math.floor(sheetW / prodH);
   const fitY2 = Math.floor(sheetH / prodW);
-  const base2 = fitX2 * fitY2;
+  const total2 = fitX2 * fitY2;
 
-  const leftoverW2 = Math.max(0, sheetW - fitX2 * prodH);
-  const leftoverH2 = Math.max(0, sheetH - fitY2 * prodW);
-
-  const extraRight2 = extrasInRect(leftoverW2, sheetH, prodW, prodH);
-  const extraBottom2 = extrasInRect(sheetW, leftoverH2, prodW, prodH);
-  const overlap2 = extrasInRect(leftoverW2, leftoverH2, prodW, prodH);
-
-  const total2 = base2 + extraRight2 + extraBottom2 - overlap2;
-
-  return Math.max(0, total1, total2);
+  // Return only the maximum number (not an object!)
+  return Math.max(total1, total2);
 }
+
 
 /* -------------------------
    Board logic
