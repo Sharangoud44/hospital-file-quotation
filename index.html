@@ -108,7 +108,7 @@
   }
 
   .size-card {
-    position: relative; /* required for cut line */
+    position: relative;
     border: 2px solid #ccc;
     border-radius: 5px;
     padding: 8px 10px;
@@ -158,7 +158,7 @@
   }
 
   /* Virtual Cut Lines */
-.cut-line-horizontal {
+  .cut-line-horizontal {
     position: absolute;
     left: 8px;
     right: 8px;
@@ -183,57 +183,46 @@
     pointer-events: none;
     z-index: 10;
   }
-/* Toggle Switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 24px;
-}
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 24px;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
-input:checked + .slider {
-  background-color: #28a745;
-}
-input:checked + .slider:before {
-  transform: translateX(26px);
-}
 
-.total {
-  margin-top: 10px;
-  font-weight: bold;
-  white-space: pre-line; /* 👈 allows new line in innerText */
-}
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  input:checked + .slider { background-color: #28a745; }
+  input:checked + .slider:before { transform: translateX(26px); }
 
-</style>
-
-
+  .total {
+    margin-top: 10px;
+    font-weight: bold;
+    white-space: pre-line; /* keep Per File on new line */
+  }
+  </style>
 </head>
 <body>
   <div class="box">
     <h2>Hospital File Quotation</h2>
+
     <div class="row">
       <div class="field">
         <label for="unit">Unit</label>
@@ -267,13 +256,12 @@ input:checked + .slider:before {
         <div class="step-group">
           <div>
             <select id="boardType" onchange="updateBoardSizes()">
-  <option value="">Select</option>
-  <option value="Art Card">Art Card</option>
-  <option value="DuplexBoard">DuplexBoard</option>
-  <option value="Cyber XL">Cyber XL</option>
-  <option value="Maplitho">Maplitho</option> <!-- ✅ Add this line -->
-</select>
-
+              <option value="">Select</option>
+              <option value="Art Card">Art Card</option>
+              <option value="DuplexBoard">DuplexBoard</option>
+              <option value="Cyber XL">Cyber XL</option>
+              <option value="Maplitho">Maplitho</option>
+            </select>
           </div>
 
           <div>
@@ -305,86 +293,84 @@ input:checked + .slider:before {
 
       <div class="step">
         <div class="field" style="display:flex;align-items:center;gap:10px;">
-  <label style="margin:0;">Enable Printing</label>
-  <label class="switch">
-    <input type="checkbox" id="togglePrinting">
-    <span class="slider round"></span>
-  </label>
-</div>
+          <label style="margin:0;">Enable Printing</label>
+          <label class="switch">
+            <input type="checkbox" id="togglePrinting">
+            <span class="slider round"></span>
+          </label>
+        </div>
 
         <div id="printingSection" style="display:none;">
-  <div class="step">
-    <label>3. Printing</label>
-    <select id="printingSize" onchange="updateBoardSizes(); updatePrintingQuotation();">
-      <option value="19x26">19 X 26</option>
-      <option value="15x20">15 X 20</option>
-      <option value="18x23">18 X 23</option>
-      <option value="22x28">22 X 28</option>
-      <option value="13x19">13 X 19 (₹15/sheet)</option>
-      <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
-    </select>
-    <div id="printingPreview" class="size-preview"></div>
-    <div id="printingResult"></div>
-  </div>
-</div>
+          <div class="step">
+            <label>3. Printing</label>
+            <select id="printingSize" onchange="updateBoardSizes(); updatePrintingQuotation();">
+              <option value="19x26">19 X 26</option>
+              <option value="15x20">15 X 20</option>
+              <option value="18x23">18 X 23</option>
+              <option value="22x28">22 X 28</option>
+              <option value="13x19">13 X 19 (₹15/sheet)</option>
+              <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
+            </select>
 
-   <div class="quotation-box">
-  <h3>Lamination Quotation</h3>
-  <label>Length: 
-    <input type="number" id="lamLength" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
-  </label><br>
-  <label>Width: 
-    <input type="number" id="lamWidth" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
-  </label><br>
-  <label>Price: 
-    <input type="number" id="lamPrice" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
-  </label><br>
-  <label>Quantity: 
-    <input type="number" id="lamQuantity" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
-  </label><br><br>
+            <!-- NEW: manual override for printing sheets -->
+            <div class="field" style="max-width:260px;margin-top:10px;">
+              <label for="customPrintingSheets">Quantity of Sheets Required for Printing (override)</label>
+              <input type="number" id="customPrintingSheets" placeholder="Leave empty for auto" min="1" oninput="updatePrintingQuotation()">
+            </div>
 
-  <!-- Calculation Box -->
-  <div id="laminationCalcBox" style="border: 2px solid green; background-color: #e8fce8; padding: 8px;">
-    <p id="laminationProcess" style="font-family: monospace; white-space: pre; margin: 0;"></p>
-    <p><strong>Total Answer:</strong> <span id="lamTotalAnswer">0.00</span></p>
-    <p><strong>Overall Answer:</strong> <span id="lamOverallAnswer">0</span></p>
-  </div>
-</div>
+            <div id="printingPreview" class="size-preview"></div>
+            <div id="printingResult"></div>
+          </div>
+        </div>
 
-      <div class="step">
-        <label for="die">5. Die</label>
-        <input type="number" id="die" value="0">
+        <div class="quotation-box">
+          <h3>Lamination Quotation</h3>
+          <label>Length:
+            <input type="number" id="lamLength" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+          </label><br>
+          <label>Width:
+            <input type="number" id="lamWidth" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+          </label><br>
+          <label>Price:
+            <input type="number" id="lamPrice" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+          </label><br>
+          <label>Quantity:
+            <input type="number" id="lamQuantity" oninput="calculateLamination()" step="0.01" style="margin-bottom: 5px;">
+          </label><br><br>
+
+          <div id="laminationCalcBox" style="border: 2px solid green; background-color: #e8fce8; padding: 8px;">
+            <p id="laminationProcess" style="font-family: monospace; white-space: pre; margin: 0;"></p>
+            <p><strong>Total Answer:</strong> <span id="lamTotalAnswer">0.00</span></p>
+            <p><strong>Overall Answer:</strong> <span id="lamOverallAnswer">0</span></p>
+          </div>
+        </div>
+
+        <div class="step">
+          <label for="die">5. Die</label>
+          <input type="number" id="die" value="0">
+        </div>
+
+        <!-- Punching Section -->
+        <div id="punchingSection" style="margin-top:20px;">
+          <h3>Punching</h3>
+          <label for="punchingRate">Rate: </label>
+          <input type="number" id="punchingRate" min="0" step="0.01" placeholder="Enter rate" value="0">
+          <br><br>
+          <label for="punchingQuantity">Quantity: </label>
+          <input type="number" id="punchingQuantity" min="0" step="1" placeholder="Enter quantity" value="0">
+          <br><br>
+          <div>Rate × Quantity = <span id="punchingTotal">0</span></div>
+        </div>
+
+        <div class="step">
+          <label for="pasting">7. Pasting</label>
+          <input type="number" id="pasting" value="0" placeholder="Pasting ₹">
+        </div>
       </div>
-      
 
-<!-- Punching Section -->
-<div id="punchingSection" style="margin-top:20px;">
-  <h3>Punching</h3>
-
-  <label for="punchingRate">Rate: </label>
-  <input type="number" id="punchingRate" min="0" step="0.01" placeholder="Enter rate" value="0">
-  <br><br>
-
-  <label for="punchingQuantity">Quantity: </label>
-  <input type="number" id="punchingQuantity" min="0" step="1" placeholder="Enter quantity" value="0">
-  <br><br>
-
-  <div>
-    Rate × Quantity = <span id="punchingTotal">0</span>
-  </div>
-</div>
-
-      <div class="step">
-        <label for="pasting">7. Pasting</label>
-        <!-- ADDED pasting input (you asked for it after punching) -->
-        <input type="number" id="pasting" value="0" placeholder="Pasting ₹">
-      </div>
-
+      <button onclick="calculatePrice()">Calculate Total</button>
+      <div class="total" id="total">Total: ₹0.00</div>
     </div>
-
-    <!-- ADDED Calculate button and total display (placed after Pasting as requested) -->
-    <button onclick="calculatePrice()">Calculate Total</button>
-    <div class="total" id="total">Total: ₹0.00</div>
   </div>
 
 <script>
@@ -422,9 +408,8 @@ function getFileSizeInInches() {
   return { fileW, fileH };
 }
 
-/* 
-  extrasInRect: maximum number of pieces that can fit in a rectangle (rectW x rectH)
-  trying both orientations inside that rectangle.
+/*
+  extrasInRect: kept for compatibility (not used by current ups).
 */
 function extrasInRect(rectW, rectH, prodW, prodH) {
   if (rectW <= 0 || rectH <= 0) return 0;
@@ -435,8 +420,7 @@ function extrasInRect(rectW, rectH, prodW, prodH) {
 
 /*
   calculateMaxUps(sheetW, sheetH, prodW, prodH):
-  improved packing: grid + extras in right strip + bottom strip minus overlap.
-  checks both orientation choices and returns max pieces (ups).
+  simple grid packing; returns only the max integer count.
 */
 function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
   if (!sheetW || !sheetH || !prodW || !prodH) return 0;
@@ -451,10 +435,8 @@ function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
   const fitY2 = Math.floor(sheetH / prodW);
   const total2 = fitX2 * fitY2;
 
-  // Return only the maximum number (not an object!)
   return Math.max(total1, total2);
 }
-
 
 /* -------------------------
    Board logic
@@ -464,7 +446,7 @@ function updateBoardSizes() {
   const sizePreview = document.getElementById("sizePreview");
   sizePreview.innerHTML = "";
 
-  const { fileW, fileH } = getFileSizeInInches(); // converted sizes in inches
+  const { fileW, fileH } = getFileSizeInInches();
   const quantity = parseInt(document.getElementById("quantity").value) || 0;
   if (!fileW || !fileH || !quantity) {
     document.getElementById('boardResult').innerHTML = '';
@@ -491,13 +473,10 @@ function updateBoardSizes() {
   let bestSizeGlobal = null;
 
   boardDataGlobal = sizes.map(size => {
-    // parse size robustly
     const [hRaw, wRaw] = parseSize(size);
-    // apply your sheet safety margin
     const h = hRaw - 0.5;
     const w = wRaw - 0.5;
 
-    // Use improved packing to get fitCount
     const fitCount = calculateMaxUps(w, h, fileW, fileH);
     const used = fitCount * fileW * fileH;
     const waste = (w * h) - used;
@@ -518,7 +497,7 @@ function updateBoardSizes() {
     card.className = "size-card";
     if (data.size === bestSizeGlobal) card.classList.add("best");
 
-    // Virtual cut line logic on board card
+    // Virtual cut line indicators (visual only)
     if (mW && mH && data.fitCount > 1) {
       if (data.height > mH && Math.abs(data.height / 2 - mH) < 0.0001) {
         const line = document.createElement("div");
@@ -560,8 +539,6 @@ function updateBoardSizes() {
   if (bestData) showBoardQuotation(bestData);
 }
 
-
-
 function getStaticBoardRate(boardType, size, gsm) {
   const key = `${boardType}-${size}-${gsm}`;
   const rates = {
@@ -595,17 +572,11 @@ function getStaticBoardRate(boardType, size, gsm) {
   return rates[key] || "Rate-15/-";
 }
 
-
-
-
-
-
 function showBoardQuotation(data) {
-  currentBoardData = data;  // ✅ This is enough
+  currentBoardData = data;
   const quantity = parseInt(document.getElementById("quantity").value) || 0;
   const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
 
-  // guard: fitCount could be zero
   const sheets = data.fitCount > 0 ? Math.ceil(quantity / data.fitCount) : 0;
   const boardCost = sheets * boardRate;
 
@@ -618,16 +589,14 @@ function showBoardQuotation(data) {
 
   document.querySelectorAll('.size-card').forEach(c => {
     c.classList.remove('selected');
-    if (c.innerText.includes(data.size)) {
-      c.classList.add('selected');
-    }
+    if (c.innerText.includes(data.size)) c.classList.add('selected');
   });
 
-  updatePrintingQuotation(); // update printing with current board
+  updatePrintingQuotation();
 }
 
 /* -------------------------
-   Printing logic (IMPROVED ups)
+   Printing logic
    ------------------------- */
 function updatePrintingSizes() {
   const preview = document.getElementById("printingPreview");
@@ -636,10 +605,8 @@ function updatePrintingSizes() {
   const { fileW, fileH } = getFileSizeInInches();
   if (!fileW || !fileH) return;
 
-  // canonical sizes (in inches)
   const sizes = ["19 X 26", "15 X 20", "18 X 23", "22 X 28", "13.4 X 19.8", "13 X 19"];
 
-  // ensure 13x19 present in dropdown (keeps your original dropdown safe)
   const printingSizeDropdown = document.getElementById("printingSize");
   if (!Array.from(printingSizeDropdown.options).some(opt => opt.value.toLowerCase() === "13x19")) {
     const option = document.createElement("option");
@@ -656,7 +623,6 @@ function updatePrintingSizes() {
     const h = hRaw - 0.5;
     const w = wRaw - 0.5;
 
-    // Use improved packing to compute fitCount
     const fitCount = calculateMaxUps(w, h, fileW, fileH);
     const used = fitCount * fileW * fileH;
     const waste = (w * h) - used;
@@ -666,13 +632,7 @@ function updatePrintingSizes() {
       bestFit = `${wRaw}x${hRaw}`;
     }
 
-    return {
-      size: `${wRaw}x${hRaw}`,
-      width: wRaw,
-      height: hRaw,
-      fitCount,
-      waste
-    };
+    return { size: `${wRaw}x${hRaw}`, width: wRaw, height: hRaw, fitCount, waste };
   });
 
   printingDataGlobal.forEach(data => {
@@ -712,8 +672,6 @@ function updatePrintingQuotation() {
   const printingSizeRaw = document.getElementById("printingSize").value;
   const quantity = parseInt(document.getElementById("quantity").value) || 0;
   const { fileW, fileH } = getFileSizeInInches();
-
-  // reset global
   printingCostGlobal = 0;
 
   if (!currentBoardData || !quantity || !fileW || !fileH || !printingSizeRaw) {
@@ -721,54 +679,56 @@ function updatePrintingQuotation() {
     return;
   }
 
-  // Board fit check (improved)
   const boardWidth = currentBoardData.width;
   const boardHeight = currentBoardData.height;
   const boardFitCount = calculateMaxUps(boardWidth - 0.5, boardHeight - 0.5, fileW, fileH);
-  if (!boardFitCount || boardFitCount === 0) {
+  if (!boardFitCount) {
     document.getElementById("printingResult").innerHTML = `
       <div style="color: red; font-weight: bold; margin-top: 10px;">
         ⚠️ Hospital file does not fit on selected board. Please choose a larger board.
-      </div>
-    `;
-    printingCostGlobal = 0;
+      </div>`;
     return;
   }
 
-  // parse printing machine size
   const [mW_raw, mH_raw] = parseSize(printingSizeRaw);
-  const mW = mW_raw - 0.5; // machine usable width
-  const mH = mH_raw - 0.5; // machine usable height
+  const mW = mW_raw - 0.5;
+  const mH = mH_raw - 0.5;
 
-  // Check machine fit size
   const isTooSmall = (fileW > mW) || (fileH > mH);
 
-  // Calculate ups on machine
   const ups = calculateMaxUps(mW, mH, fileW, fileH);
-  if (ups === 0) {
+  if (!ups) {
     document.getElementById("printingResult").innerHTML = `
-      <div style="color: red; font-weight:bold;">⚠️ File cannot be printed on selected machine (no fit).</div>
-    `;
-    printingCostGlobal = 0;
+      <div style="color: red; font-weight:bold;">⚠️ File cannot be printed on selected machine (no fit).</div>`;
     return;
   }
 
-  // --- NEW: compute total board sheets needed (same logic as showBoardQuotation)
+  // Base auto calculation (same as before)
   const totalSheetsNeeded = currentBoardData && currentBoardData.fitCount > 0
     ? Math.ceil(quantity / currentBoardData.fitCount)
     : 0;
 
-  // Virtual cut detection
   let virtualCut = false;
   const canCutWidth = boardWidth > mW_raw && Math.abs(boardWidth / 2 - mW_raw) < 0.0001;
   const canCutHeight = boardHeight > mH_raw && Math.abs(boardHeight / 2 - mH_raw) < 0.0001;
   if (boardFitCount > 1 && (canCutWidth || canCutHeight)) virtualCut = true;
 
-  // Use totalSheetsNeeded as the base (user requested). Double if virtual cut.
-  let sheets = totalSheetsNeeded;
-  if (virtualCut) sheets *= 2;
+  let sheetsAuto = totalSheetsNeeded;
+  if (virtualCut) sheetsAuto *= 2;
 
-  // pricing rules (unchanged)
+  // NEW: manual override
+  let usedOverride = false;
+  let sheets = sheetsAuto;
+  const customEl = document.getElementById("customPrintingSheets");
+  if (customEl) {
+    const customVal = parseInt(customEl.value, 10);
+    if (!Number.isNaN(customVal) && customVal > 0) {
+      sheets = customVal;
+      usedOverride = true;
+    }
+  }
+
+  // pricing rules: compute base price first (unchanged), then apply slab extra after 3000
   let basePrice;
   const normalizedSize = printingSizeRaw.replace(/\s+/g, "").toLowerCase();
   if (normalizedSize === "13x19") {
@@ -777,12 +737,19 @@ function updatePrintingQuotation() {
     basePrice = 1900;
   } else {
     basePrice = 2500;
-    if (sheets > 3000) basePrice += 1000;
   }
 
-  printingCostGlobal = basePrice;
+  // APPLY SLAB EXTRA: for every 1000 sheets AFTER 3000 add ₹500 (3001-4000 => +500, 4001-5000 => +1000, ...)
+  let extraCharge = 0;
+  if (sheets > 3000) {
+    extraCharge = Math.ceil((sheets - 3000) / 1000) * 500;
+  }
+
+  const totalPrintingPrice = basePrice + extraCharge;
+  printingCostGlobal = totalPrintingPrice;
 
   const warningText = isTooSmall ? `<div style="color:red;font-weight:bold;">⚠️ File size is too large for this machine!</div>` : "";
+  const overrideNote = usedOverride ? ` <em>(manual override)</em>` : (virtualCut ? ` (After virtual cut)` : "");
 
   document.getElementById("printingResult").innerHTML = `
     <strong>Printing Quotation:</strong><br>
@@ -790,11 +757,10 @@ function updatePrintingQuotation() {
     Quantity Files Required: ${quantity}<br/>
     Machine Size: <b>${printingSizeRaw.replace('x',' X ')}</b><br>
     Ups on Machine: <b>${ups}</b><br>
-    Sheets: <b>${sheets}</b>${virtualCut ? ` (After virtual cut)` : ""}<br>
-    Printing Cost: ₹<b>${basePrice}</b><br>${warningText}
+    Sheets: <b>${sheets}</b>${overrideNote}<br>
+    Printing Cost: ₹<b>${totalPrintingPrice}</b><br>${warningText}
   `;
 }
-
 
 /* -------------------------
    Lamination & Punching
@@ -816,7 +782,7 @@ function calculateLamination() {
   document.getElementById('lamTotalAnswer').innerText = totalAnswer.toFixed(2);
   document.getElementById('lamOverallAnswer').innerText = overallAnswer;
 
-  return overallAnswer; // return numeric lamination cost
+  return overallAnswer;
 }
 
 // punching UI update
@@ -837,7 +803,7 @@ function calculatePrice() {
   const die = parseFloat(document.getElementById("die").value) || 0;
   const pasting = parseFloat(document.getElementById("pasting").value) || 0;
 
-  // Board cost: compute from currentBoardData rather than parsing text (more reliable)
+  // Board cost
   let board = 0;
   if (currentBoardData && currentBoardData.fitCount && currentBoardData.fitCount > 0) {
     const quantity = parseInt(document.getElementById("quantity").value) || 0;
@@ -846,7 +812,7 @@ function calculatePrice() {
     board = sheets * boardRate;
   }
 
-  // Printing: only include if toggle enabled and printingCostGlobal exists
+  // Printing (only if enabled)
   const printingToggle = document.getElementById("togglePrinting");
   const printingEnabled = printingToggle && printingToggle.checked;
   let printing = 0;
@@ -860,17 +826,16 @@ function calculatePrice() {
   // Lamination
   const laminationCost = calculateLamination() || 0;
 
-  // Punching (read the computed punchingTotal)
+  // Punching
   const punching = parseFloat(document.getElementById("punchingTotal").textContent) || 0;
 
   const total = design + board + printing + laminationCost + die + punching + pasting;
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
   let quantity = parseInt(document.getElementById("quantity").value) || 0;
-if (quantity > 0) {
-  let perFile = total / quantity;
-  document.getElementById("total").innerText += `\nPer File: ₹${perFile.toFixed(2)}`;
-}
-
+  if (quantity > 0) {
+    let perFile = total / quantity;
+    document.getElementById("total").innerText += `\nPer File: ₹${perFile.toFixed(2)}`;
+  }
 }
 
 /* -------------------------
