@@ -540,36 +540,8 @@ function updateBoardSizes() {
 }
 
 function getStaticBoardRate(boardType, size, gsm) {
-  const key = `${boardType}-${size}-${gsm}`;
-  const rates = {
-    // Art Card rates
-    "Art Card-30 X 40-200": "Rate-12/-",
-    "Art Card-23 X 36-200": "Rate-13/-",
-    "Art Card-25 X 36-200": "Rate-14/-",
-    "Art Card-22 X 28-200": "Rate-15/-",
-    "Art Card-13 X 19-200": "Rate-15/-",
-    "Art Card-13 X 19-250": "Rate-15/-",
-    "Art Card-13 X 19-300": "Rate-15/-",
-    "Art Card-13 X 19-350": "Rate-15/-",
-    "Art Card-13 X 19-400": "Rate-15/-",
-
-    // Maplitho rates
-    "Maplitho-13 X 19-200": "Rate-15/-",
-    "Maplitho-13 X 19-250": "Rate-15/-",
-    "Maplitho-13 X 19-300": "Rate-15/-",
-    "Maplitho-13 X 19-350": "Rate-15/-",
-    "Maplitho-13 X 19-400": "Rate-15/-",
-
-    // Cyber XL rates
-    "Cyber XL-22 X 28-200": "Rate-14/-",
-    "Cyber XL-23 X 36-200": "Rate-15/-",
-    "Cyber XL-25 X 36-200": "Rate-16/-",
-    "Cyber XL-20 X 30-200": "Rate-13/-",
-    "Cyber XL-23 X 30-200": "Rate-14/-",
-    "Cyber XL-31.5 X 41.5-200": "Rate-17/-",
-    "Cyber XL-25 X 30-200": "Rate-15/-"
-  };
-  return rates[key] || "Rate-15/-";
+  // All board rates forced to 0/- as requested.
+  return "Rate-0/-";
 }
 
 function showBoardQuotation(data) {
