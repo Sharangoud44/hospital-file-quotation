@@ -221,6 +221,11 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
+.total {
+  margin-top: 10px;
+  font-weight: bold;
+  white-space: pre-line; /* 👈 allows new line in innerText */
+}
 
 </style>
 
@@ -876,6 +881,12 @@ function calculatePrice() {
 
   const total = design + board + printing + laminationCost + die + punching + pasting;
   document.getElementById("total").textContent = `Total: ₹${total.toFixed(2)}`;
+  let quantity = parseInt(document.getElementById("quantity").value) || 0;
+if (quantity > 0) {
+  let perFile = total / quantity;
+  document.getElementById("total").innerText += `\nPer File: ₹${perFile.toFixed(2)}`;
+}
+
 }
 
 /* -------------------------
