@@ -229,6 +229,7 @@
         <select id="unit">
           <option value="inch">Inches</option>
           <option value="cm">Centimeters</option>
+          <option value="mm">Millimeters</option>
         </select>
       </div>
       <div class="field">
@@ -394,7 +395,7 @@ function parseSize(sizeStr) {
   return parts.map(s => parseFloat(s) || 0);
 }
 
-// Convert file inputs to inches (if unit is cm)
+// Convert file inputs to inches (if unit is cm or mm)
 function getFileSizeInInches() {
   const unit = document.getElementById('unit').value;
   let fileW = parseFloat(document.getElementById('width').value) || 0;
@@ -404,6 +405,10 @@ function getFileSizeInInches() {
     // 1 inch = 2.54 cm
     fileW = fileW / 2.54;
     fileH = fileH / 2.54;
+  } else if (unit === 'mm') {
+    // 1 inch = 25.4 mm
+    fileW = fileW / 25.4;
+    fileH = fileH / 25.4;
   }
   return { fileW, fileH };
 }
