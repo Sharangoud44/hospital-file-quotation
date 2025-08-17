@@ -382,9 +382,10 @@ let currentBoardData = null;
 let boardDataGlobal = [];
 let printingDataGlobal = [];
 let printingCostGlobal = 0;
+let userEditedBoardRate = false; // NEW: track if user manually changed rate
 
 /* -------------------------
-   RATE & OPTIONS DATABASE (your real data)
+   RATE & OPTIONS DATABASE (real data you provided)
    ------------------------- */
 const BOARD_DB = {
   "Maplitho Paper": {
@@ -404,7 +405,6 @@ const BOARD_DB = {
     }
   },
   "Art Card": {
-    // kept sizes minimal to those with rates; add more if you want
     sizes: ["25 X 36", "20 X 30"],
     gsms: ["300"],
     rates: {
@@ -436,7 +436,6 @@ const BOARD_DB = {
     }
   },
   "Duplex Board (Grey Back)": {
-    // keep your old sizes AND add 31.5x41.5 since you provided rate for that
     sizes: ["30 X 40", "23 X 36", "25 X 36", "31.5 X 41.5"],
     gsms: ["300"],
     rates: {
@@ -444,11 +443,10 @@ const BOARD_DB = {
     }
   },
   "Duplex Board (White Back)": {
-    // same sizes as your old Duplex
     sizes: ["30 X 40", "23 X 36", "25 X 36"],
     gsms: ["300"],
     rates: {
-      // no rates given by you yet; stays zero until you add
+      // add when available
     }
   }
 };
@@ -456,51 +454,41 @@ const BOARD_DB = {
 /* -------------------------
    Helpers
    ------------------------- */
-
 // parse size string like "30 X 40" or "13x19" -> [num,num]
 function parseSize(sizeStr) {
   if (!sizeStr) return [0,0];
-  const norm = sizeStr.replace(/\s+/g,'').toLowerCase(); // "30x40" or "13.4x19.8"
+  const norm = sizeStr.replace(/\s+/g,'').toLowerCase();
   const parts = norm.split('x');
   return parts.map(s => parseFloat(s) || 0);
 }
-
 function normSizeKey(sizeStr) {
-  return sizeStr.replace(/\s+/g,'').toLowerCase(); // "23x36"
+  return sizeStr.replace(/\s+/g,'').toLowerCase();
 }
-
+// Convert file inputs to inches (if unit is cm or mm)
 function getFileSizeInInches() {
   const unit = document.getElementById('unit').value;
   let fileW = parseFloat(document.getElementById('width').value) || 0;
   let fileH = parseFloat(document.getElementById('length').value) || 0;
-
-  if (unit === 'cm') {
-    fileW = fileW / 2.54;
-    fileH = fileH / 2.54;
-  } else if (unit === 'mm') {
-    fileW = fileW / 25.4;
-    fileH = fileH / 25.4;
-  }
+  if (unit === 'cm') { fileW = fileW / 2.54; fileH = fileH / 2.54; }
+  else if (unit === 'mm') { fileW = fileW / 25.4; fileH = fileH / 25.4; }
   return { fileW, fileH };
 }
-
+// Compatibility helper (not used directly by ups)
 function extrasInRect(rectW, rectH, prodW, prodH) {
   if (rectW <= 0 || rectH <= 0) return 0;
   const a = Math.floor(rectW / prodW) * Math.floor(rectH / prodH);
   const b = Math.floor(rectW / prodH) * Math.floor(rectH / prodW);
   return Math.max(0, a, b);
 }
-
+// max integer packing (no rotation loss)
 function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
   if (!sheetW || !sheetH || !prodW || !prodH) return 0;
   const fitX1 = Math.floor(sheetW / prodW);
   const fitY1 = Math.floor(sheetH / prodH);
   const total1 = fitX1 * fitY1;
-
   const fitX2 = Math.floor(sheetW / prodH);
   const fitY2 = Math.floor(sheetH / prodW);
   const total2 = fitX2 * fitY2;
-
   return Math.max(total1, total2);
 }
 
@@ -508,15 +496,16 @@ function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
    Dynamic board/GSM/size wiring
    ------------------------- */
 function onBoardTypeChange() {
-  // Populate GSMs and sizes based on selected board
   const boardType = document.getElementById("boardType").value;
+  // Reset manual-rate flag when board type changes so it can auto-fill new recommended
+  userEditedBoardRate = false;
   populateGSMOptions(boardType);
   populateSizeOptions(boardType);
   // reset preview & results
   document.getElementById("sizePreview").innerHTML = "";
   document.getElementById("boardResult").innerHTML = "";
   currentBoardData = null;
-  updateBoardSizes(); // rebuild the preview based on new sizes
+  updateBoardSizes();
 }
 
 function populateGSMOptions(boardType) {
@@ -528,15 +517,13 @@ function populateGSMOptions(boardType) {
     return;
   }
   const gsms = BOARD_DB[boardType].gsms || [];
-
   if (!gsms.length) {
-    // no GSM for this board => hide selector (e.g., Stickers)
-    gsmWrap.style.display = "none";
+    gsmWrap.style.display = "none"; // e.g., Stickers
   } else {
     gsmWrap.style.display = "block";
     gsms.forEach(g => {
       const opt = document.createElement("option");
-      opt.value = g; // numeric string like "70"
+      opt.value = g;
       opt.textContent = `${g} GSM`;
       gsmSel.appendChild(opt);
     });
@@ -546,11 +533,8 @@ function populateGSMOptions(boardType) {
 function populateSizeOptions(boardType) {
   const sizeDropdown = document.getElementById("size");
   sizeDropdown.innerHTML = '<option value="">Select Size</option>';
-
   let sizes = [];
-  if (boardType && BOARD_DB[boardType]) {
-    sizes = BOARD_DB[boardType].sizes || [];
-  }
+  if (boardType && BOARD_DB[boardType]) sizes = BOARD_DB[boardType].sizes || [];
   sizes.forEach(s => sizeDropdown.innerHTML += `<option value="${s}">${s}</option>`);
 }
 
@@ -570,11 +554,9 @@ function updateBoardSizes() {
     return;
   }
 
-  // Sizes come from your new DB (dynamic per board)
+  // Sizes from DB
   let sizes = [];
-  if (boardType && BOARD_DB[boardType]) {
-    sizes = BOARD_DB[boardType].sizes || [];
-  }
+  if (boardType && BOARD_DB[boardType]) sizes = BOARD_DB[boardType].sizes || [];
 
   const sizeDropdown = document.getElementById("size");
   sizeDropdown.innerHTML = '<option value="">Select Size</option>';
@@ -664,19 +646,13 @@ function getStaticBoardRate(boardType, size, gsmVal) {
   if (!boardType || !BOARD_DB[boardType]) return "Rate-0/-";
   const db = BOARD_DB[boardType];
   const rateTable = db.rates || {};
-  const sizeKey = normSizeKey(size); // e.g., "23x36"
+  const sizeKey = normSizeKey(size);
   const bySize = rateTable[sizeKey] || {};
   const key = (gsmVal == null ? "-" : gsmVal);
   const rate = bySize[key];
-
-  if (typeof rate === "number") {
-    return `Rate-${rate}/-`;
-  }
-  // also allow any gsm if exact gsm not found but only one exists
+  if (typeof rate === "number") return `Rate-${rate}/-`;
   const possible = Object.values(bySize);
-  if (possible.length === 1 && typeof possible[0] === "number") {
-    return `Rate-${possible[0]}/-`;
-  }
+  if (possible.length === 1 && typeof possible[0] === "number") return `Rate-${possible[0]}/-`;
   return "Rate-0/-";
 }
 
@@ -684,25 +660,26 @@ function showBoardQuotation(data) {
   currentBoardData = data;
   const quantity = parseInt(document.getElementById("quantity").value) || 0;
 
-  // auto-fill boardRate based on selection
+  // Suggested rate from DB
   const boardType = document.getElementById("boardType").value;
   const gsmVal = getSelectedGSM();
   const rateText = getStaticBoardRate(boardType, data.size, gsmVal);
-  const rateNum = parseFloat((rateText.match(/Rate-(.*)\/-/) || [])[1]) || 0;
+  const suggestedRate = parseFloat((rateText.match(/Rate-(.*)\/-/) || [])[1]) || 0;
+
   const boardRateInput = document.getElementById("boardRate");
-  if (boardRateInput) {
-    boardRateInput.value = rateNum;
+  // Only autofill if user hasn't manually edited OR the field is empty
+  if (!userEditedBoardRate || boardRateInput.value === "" || boardRateInput.value === "0") {
+    boardRateInput.value = suggestedRate;
   }
 
   const boardRate = parseFloat(boardRateInput.value) || 0;
-
   const sheets = data.fitCount > 0 ? Math.ceil(quantity / data.fitCount) : 0;
   const boardCost = sheets * boardRate;
 
   document.getElementById("boardResult").innerHTML = `<strong>Board Quotation:</strong><br>
     Selected Board: <b>${boardType || "-"}</b><br>
     Selected Size: <b>${data.size}</b><br>
-    ${BOARD_DB[boardType] && BOARD_DB[boardType].gsms.length ? `GSM: <b>${gsmVal || "-"}</b><br>` : ``}
+    ${BOARD_DB[boardType] && (BOARD_DB[boardType].gsms || []).length ? `GSM: <b>${gsmVal || "-"}</b><br>` : ``}
     Files per Sheet: <b>${data.fitCount}</b><br>
     Quantity Required: <b>${quantity}</b><br>
     Total Sheets Needed: <b>${sheets}</b><br>
@@ -825,7 +802,7 @@ function updatePrintingQuotation() {
     return;
   }
 
-  // Base auto calculation (same as before)
+  // Base auto calculation
   const totalSheetsNeeded = currentBoardData && currentBoardData.fitCount > 0
     ? Math.ceil(quantity / currentBoardData.fitCount)
     : 0;
@@ -850,7 +827,7 @@ function updatePrintingQuotation() {
     }
   }
 
-  // pricing rules: compute base price first (unchanged), then apply slab extra after 3000
+  // pricing rules
   let basePrice;
   const normalizedSize = printingSizeRaw.replace(/\s+/g, "").toLowerCase();
   if (normalizedSize === "13x19") {
@@ -964,6 +941,7 @@ function calculatePrice() {
    Event wiring
    ------------------------- */
 document.getElementById("boardRate").addEventListener("input", () => {
+  userEditedBoardRate = true; // user manually changed it, do not auto-overwrite
   if (currentBoardData) showBoardQuotation(currentBoardData);
 });
 
@@ -985,16 +963,23 @@ document.getElementById("printingSize").addEventListener("change", () => {
 
 document.getElementById("unit").addEventListener("change", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
 
-// When GSM changes, refresh previews and re-apply rate
-document.getElementById("gsm").addEventListener("change", () => {
-  updateBoardSizes();
-  if (currentBoardData) showBoardQuotation(currentBoardData);
-});
+// GSM change: re-enable auto suggestion for the new combination, but keep user's override if they edit again
+const gsmEl = document.getElementById("gsm");
+if (gsmEl) {
+  gsmEl.addEventListener("change", () => {
+    userEditedBoardRate = false; // allow new suggested rate after GSM switch
+    updateBoardSizes();
+    if (currentBoardData) showBoardQuotation(currentBoardData);
+  });
+}
 
-// When size dropdown changes, no calculation depends directly on it, but keep UX consistent:
-document.getElementById("size").addEventListener("change", () => {
-  updateBoardSizes();
-});
+// Size dropdown change -> recalc preview
+const sizeEl = document.getElementById("size");
+if (sizeEl) {
+  sizeEl.addEventListener("change", () => {
+    updateBoardSizes();
+  });
+}
 
 document.getElementById("quantity").addEventListener("input", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
 
