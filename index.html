@@ -256,22 +256,22 @@
         <label>2. Board</label>
         <div class="step-group">
           <div>
-            <select id="boardType" onchange="updateBoardSizes()">
+            <select id="boardType" onchange="onBoardTypeChange()">
               <option value="">Select</option>
               <option value="Art Card">Art Card</option>
-              <option value="DuplexBoard">DuplexBoard</option>
+              <option value="Art Paper">Art Paper</option>
               <option value="Cyber XL">Cyber XL</option>
-              <option value="Maplitho">Maplitho</option>
+              <option value="Cyber XL (Saphire)">Cyber XL (Saphire)</option>
+              <option value="Maplitho Paper">Maplitho Paper</option>
+              <option value="Stickers">Stickers</option>
+              <option value="Duplex Board (Grey Back)">Duplex Board (Grey Back)</option>
+              <option value="Duplex Board (White Back)">Duplex Board (White Back)</option>
             </select>
           </div>
 
-          <div>
+          <div id="gsmContainer">
             <select id="gsm" class="gsm-select">
-              <option value="200">200 GSM</option>
-              <option value="250">250 GSM</option>
-              <option value="300">300 GSM</option>
-              <option value="350">350 GSM</option>
-              <option value="400">400 GSM</option>
+              <!-- dynamically populated -->
             </select>
           </div>
 
@@ -313,7 +313,7 @@
               <option value="13.4x19.8">13.4 X 19.8 (Small)</option>
             </select>
 
-            <!-- NEW: manual override for printing sheets -->
+            <!-- manual override for printing sheets -->
             <div class="field" style="max-width:260px;margin-top:10px;">
               <label for="customPrintingSheets">Quantity of Sheets Required for Printing (override)</label>
               <input type="number" id="customPrintingSheets" placeholder="Leave empty for auto" min="1" oninput="updatePrintingQuotation()">
@@ -384,6 +384,76 @@ let printingDataGlobal = [];
 let printingCostGlobal = 0;
 
 /* -------------------------
+   RATE & OPTIONS DATABASE (your real data)
+   ------------------------- */
+const BOARD_DB = {
+  "Maplitho Paper": {
+    sizes: ["23 X 36", "25 X 36"],
+    gsms: ["70"],
+    rates: {
+      "23x36": { "70": 3.50 },
+      "25x36": { "70": 3.80 }
+    }
+  },
+  "Art Paper": {
+    sizes: ["23 X 36", "20 X 30"],
+    gsms: ["80","100","130","250"],
+    rates: {
+      "23x36": { "80": 4.10, "100": 6.00, "130": 6.50, "250": 14.00 },
+      "20x30": { "130": 4.50 }
+    }
+  },
+  "Art Card": {
+    // kept sizes minimal to those with rates; add more if you want
+    sizes: ["25 X 36", "20 X 30"],
+    gsms: ["300"],
+    rates: {
+      "25x36": { "300": 21.00 },
+      "20x30": { "300": 11.00 }
+    }
+  },
+  "Cyber XL": {
+    sizes: ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"],
+    gsms: ["300"],
+    rates: {
+      "23x36": { "300": 14.00 }
+    }
+  },
+  "Cyber XL (Saphire)": {
+    sizes: ["31.5 X 41.5"],
+    gsms: ["250"],
+    rates: {
+      "31.5x41.5": { "250": 20.00 }
+    }
+  },
+  "Stickers": {
+    sizes: ["18 X 23", "20 X 30", "20 X 26"],
+    gsms: [],
+    rates: {
+      "18x23": { "-": 10.00 },
+      "20x30": { "-": 13.00 },
+      "20x26": { "-": 12.00 }
+    }
+  },
+  "Duplex Board (Grey Back)": {
+    // keep your old sizes AND add 31.5x41.5 since you provided rate for that
+    sizes: ["30 X 40", "23 X 36", "25 X 36", "31.5 X 41.5"],
+    gsms: ["300"],
+    rates: {
+      "31.5x41.5": { "300": 14.00 }
+    }
+  },
+  "Duplex Board (White Back)": {
+    // same sizes as your old Duplex
+    sizes: ["30 X 40", "23 X 36", "25 X 36"],
+    gsms: ["300"],
+    rates: {
+      // no rates given by you yet; stays zero until you add
+    }
+  }
+};
+
+/* -------------------------
    Helpers
    ------------------------- */
 
@@ -395,27 +465,25 @@ function parseSize(sizeStr) {
   return parts.map(s => parseFloat(s) || 0);
 }
 
-// Convert file inputs to inches (if unit is cm or mm)
+function normSizeKey(sizeStr) {
+  return sizeStr.replace(/\s+/g,'').toLowerCase(); // "23x36"
+}
+
 function getFileSizeInInches() {
   const unit = document.getElementById('unit').value;
   let fileW = parseFloat(document.getElementById('width').value) || 0;
   let fileH = parseFloat(document.getElementById('length').value) || 0;
 
   if (unit === 'cm') {
-    // 1 inch = 2.54 cm
     fileW = fileW / 2.54;
     fileH = fileH / 2.54;
   } else if (unit === 'mm') {
-    // 1 inch = 25.4 mm
     fileW = fileW / 25.4;
     fileH = fileH / 25.4;
   }
   return { fileW, fileH };
 }
 
-/*
-  extrasInRect: kept for compatibility (not used by current ups).
-*/
 function extrasInRect(rectW, rectH, prodW, prodH) {
   if (rectW <= 0 || rectH <= 0) return 0;
   const a = Math.floor(rectW / prodW) * Math.floor(rectH / prodH);
@@ -423,24 +491,67 @@ function extrasInRect(rectW, rectH, prodW, prodH) {
   return Math.max(0, a, b);
 }
 
-/*
-  calculateMaxUps(sheetW, sheetH, prodW, prodH):
-  simple grid packing; returns only the max integer count.
-*/
 function calculateMaxUps(sheetW, sheetH, prodW, prodH) {
   if (!sheetW || !sheetH || !prodW || !prodH) return 0;
-
-  // Orientation 1 (normal)
   const fitX1 = Math.floor(sheetW / prodW);
   const fitY1 = Math.floor(sheetH / prodH);
   const total1 = fitX1 * fitY1;
 
-  // Orientation 2 (rotated)
   const fitX2 = Math.floor(sheetW / prodH);
   const fitY2 = Math.floor(sheetH / prodW);
   const total2 = fitX2 * fitY2;
 
   return Math.max(total1, total2);
+}
+
+/* -------------------------
+   Dynamic board/GSM/size wiring
+   ------------------------- */
+function onBoardTypeChange() {
+  // Populate GSMs and sizes based on selected board
+  const boardType = document.getElementById("boardType").value;
+  populateGSMOptions(boardType);
+  populateSizeOptions(boardType);
+  // reset preview & results
+  document.getElementById("sizePreview").innerHTML = "";
+  document.getElementById("boardResult").innerHTML = "";
+  currentBoardData = null;
+  updateBoardSizes(); // rebuild the preview based on new sizes
+}
+
+function populateGSMOptions(boardType) {
+  const gsmWrap = document.getElementById("gsmContainer");
+  const gsmSel = document.getElementById("gsm");
+  gsmSel.innerHTML = "";
+  if (!boardType || !BOARD_DB[boardType]) {
+    gsmWrap.style.display = "block";
+    return;
+  }
+  const gsms = BOARD_DB[boardType].gsms || [];
+
+  if (!gsms.length) {
+    // no GSM for this board => hide selector (e.g., Stickers)
+    gsmWrap.style.display = "none";
+  } else {
+    gsmWrap.style.display = "block";
+    gsms.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g; // numeric string like "70"
+      opt.textContent = `${g} GSM`;
+      gsmSel.appendChild(opt);
+    });
+  }
+}
+
+function populateSizeOptions(boardType) {
+  const sizeDropdown = document.getElementById("size");
+  sizeDropdown.innerHTML = '<option value="">Select Size</option>';
+
+  let sizes = [];
+  if (boardType && BOARD_DB[boardType]) {
+    sizes = BOARD_DB[boardType].sizes || [];
+  }
+  sizes.forEach(s => sizeDropdown.innerHTML += `<option value="${s}">${s}</option>`);
 }
 
 /* -------------------------
@@ -459,15 +570,10 @@ function updateBoardSizes() {
     return;
   }
 
+  // Sizes come from your new DB (dynamic per board)
   let sizes = [];
-  if (boardType === "Art Card") {
-    sizes = ["30 X 40", "23 X 36", "25 X 36", "22 X 28", "13 X 19"];
-  } else if (boardType === "Cyber XL") {
-    sizes = ["22 X 28", "23 X 30", "23 X 36", "25 X 36", "20 X 30", "31.5 X 41.5", "25 X 30"];
-  } else if (boardType === "Maplitho") {
-    sizes = ["13 X 19"];
-  } else if (boardType === "DuplexBoard") {
-    sizes = ["30 X 40", "23 X 36", "25 X 36"];
+  if (boardType && BOARD_DB[boardType]) {
+    sizes = BOARD_DB[boardType].sizes || [];
   }
 
   const sizeDropdown = document.getElementById("size");
@@ -529,10 +635,9 @@ function updateBoardSizes() {
     text.className = "fit-count";
     text.innerHTML = `${data.fitCount} file(s) fit<br>Wastage: ${data.waste.toFixed(2)} in²`;
 
-    const gsm = document.getElementById("gsm").value.replace(" GSM", "");
     const rateLine = document.createElement("div");
     rateLine.style.marginTop = "2px";
-    rateLine.innerText = getStaticBoardRate(boardType, data.size, gsm);
+    rateLine.innerText = getStaticBoardRate(boardType, data.size, getSelectedGSM());
     text.appendChild(rateLine);
 
     if (data.size === bestSizeGlobal) text.innerHTML += " ✅ Best Fit";
@@ -544,24 +649,64 @@ function updateBoardSizes() {
   if (bestData) showBoardQuotation(bestData);
 }
 
-function getStaticBoardRate(boardType, size, gsm) {
-  // All board rates forced to 0/- as requested.
+function getSelectedGSM() {
+  const boardType = document.getElementById("boardType").value;
+  if (!boardType || !BOARD_DB[boardType]) return null;
+  const hasGSM = (BOARD_DB[boardType].gsms || []).length > 0;
+  if (!hasGSM) return "-"; // for Stickers etc.
+  const gsmSel = document.getElementById("gsm");
+  const gsmVal = gsmSel ? (gsmSel.value || null) : null;
+  return gsmVal;
+}
+
+// Look up rate from DB; fall back to 0/- if not found
+function getStaticBoardRate(boardType, size, gsmVal) {
+  if (!boardType || !BOARD_DB[boardType]) return "Rate-0/-";
+  const db = BOARD_DB[boardType];
+  const rateTable = db.rates || {};
+  const sizeKey = normSizeKey(size); // e.g., "23x36"
+  const bySize = rateTable[sizeKey] || {};
+  const key = (gsmVal == null ? "-" : gsmVal);
+  const rate = bySize[key];
+
+  if (typeof rate === "number") {
+    return `Rate-${rate}/-`;
+  }
+  // also allow any gsm if exact gsm not found but only one exists
+  const possible = Object.values(bySize);
+  if (possible.length === 1 && typeof possible[0] === "number") {
+    return `Rate-${possible[0]}/-`;
+  }
   return "Rate-0/-";
 }
 
 function showBoardQuotation(data) {
   currentBoardData = data;
   const quantity = parseInt(document.getElementById("quantity").value) || 0;
-  const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
+
+  // auto-fill boardRate based on selection
+  const boardType = document.getElementById("boardType").value;
+  const gsmVal = getSelectedGSM();
+  const rateText = getStaticBoardRate(boardType, data.size, gsmVal);
+  const rateNum = parseFloat((rateText.match(/Rate-(.*)\/-/) || [])[1]) || 0;
+  const boardRateInput = document.getElementById("boardRate");
+  if (boardRateInput) {
+    boardRateInput.value = rateNum;
+  }
+
+  const boardRate = parseFloat(boardRateInput.value) || 0;
 
   const sheets = data.fitCount > 0 ? Math.ceil(quantity / data.fitCount) : 0;
   const boardCost = sheets * boardRate;
 
   document.getElementById("boardResult").innerHTML = `<strong>Board Quotation:</strong><br>
+    Selected Board: <b>${boardType || "-"}</b><br>
     Selected Size: <b>${data.size}</b><br>
+    ${BOARD_DB[boardType] && BOARD_DB[boardType].gsms.length ? `GSM: <b>${gsmVal || "-"}</b><br>` : ``}
     Files per Sheet: <b>${data.fitCount}</b><br>
     Quantity Required: <b>${quantity}</b><br>
     Total Sheets Needed: <b>${sheets}</b><br>
+    Rate/Sheet: <b>₹${boardRate.toFixed(2)}</b><br>
     <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
 
   document.querySelectorAll('.size-card').forEach(c => {
@@ -693,7 +838,7 @@ function updatePrintingQuotation() {
   let sheetsAuto = totalSheetsNeeded;
   if (virtualCut) sheetsAuto *= 2;
 
-  // NEW: manual override
+  // manual override
   let usedOverride = false;
   let sheets = sheetsAuto;
   const customEl = document.getElementById("customPrintingSheets");
@@ -716,7 +861,7 @@ function updatePrintingQuotation() {
     basePrice = 2500;
   }
 
-  // APPLY SLAB EXTRA: for every 1000 sheets AFTER 3000 add ₹500 (3001-4000 => +500, 4001-5000 => +1000, ...)
+  // slab extra after 3000
   let extraCharge = 0;
   if (sheets > 3000) {
     extraCharge = Math.ceil((sheets - 3000) / 1000) * 500;
@@ -821,6 +966,7 @@ function calculatePrice() {
 document.getElementById("boardRate").addEventListener("input", () => {
   if (currentBoardData) showBoardQuotation(currentBoardData);
 });
+
 document.getElementById("togglePrinting").addEventListener("change", function() {
   document.getElementById("printingSection").style.display = this.checked ? "block" : "none";
   if (this.checked) {
@@ -838,10 +984,23 @@ document.getElementById("printingSize").addEventListener("change", () => {
 });
 
 document.getElementById("unit").addEventListener("change", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
-document.getElementById("gsm").addEventListener("change", updateBoardSizes);
+
+// When GSM changes, refresh previews and re-apply rate
+document.getElementById("gsm").addEventListener("change", () => {
+  updateBoardSizes();
+  if (currentBoardData) showBoardQuotation(currentBoardData);
+});
+
+// When size dropdown changes, no calculation depends directly on it, but keep UX consistent:
+document.getElementById("size").addEventListener("change", () => {
+  updateBoardSizes();
+});
+
 document.getElementById("quantity").addEventListener("input", () => { updateBoardSizes(); updatePrintingSizes(); updatePrintingQuotation(); });
 
-// initialize previews
+// initialize defaults
+populateGSMOptions(document.getElementById("boardType").value);
+populateSizeOptions(document.getElementById("boardType").value);
 updateBoardSizes();
 updatePrintingSizes();
 </script>
