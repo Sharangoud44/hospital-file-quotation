@@ -289,6 +289,12 @@
           <input type="number" id="boardRate" value="0">
         </div>
 
+        <!-- NEW: Board Cost override input (user-entered total board cost) -->
+        <div class="board-rate-box" style="margin-top:8px;">
+          <label for="boardCostOverride">Board Cost (override - optional)</label>
+          <input type="number" id="boardCostOverride" placeholder="Leave empty to use calculated board cost">
+        </div>
+
         <div id="boardResult"></div>
       </div>
 
@@ -383,6 +389,8 @@ let boardDataGlobal = [];
 let printingDataGlobal = [];
 let printingCostGlobal = 0;
 let userEditedBoardRate = false; // NEW: track if user manually changed rate
+let currentBoardCost = 0; // actual board cost used in calculation (may be override)
+let currentBoardSheets = 0; // store sheets for current selection
 
 /* -------------------------
    RATE & OPTIONS DATABASE (real data you provided)
@@ -664,6 +672,16 @@ function getStaticBoardRate(boardType, size, gsmVal) {
   return "Rate-0/-";
 }
 
+function getBoardCostFromOverrideOrComputed(sheets, computedBoardCost) {
+  const overrideEl = document.getElementById("boardCostOverride");
+  if (!overrideEl) return computedBoardCost;
+  const val = parseFloat(overrideEl.value);
+  if (!Number.isNaN(val) && val > 0) {
+    return val;
+  }
+  return computedBoardCost;
+}
+
 function showBoardQuotation(data) {
   currentBoardData = data;
   const quantity = parseInt(document.getElementById("quantity").value) || 0;
@@ -682,7 +700,17 @@ function showBoardQuotation(data) {
 
   const boardRate = parseFloat(boardRateInput.value) || 0;
   const sheets = data.fitCount > 0 ? Math.ceil(quantity / data.fitCount) : 0;
-  const boardCost = sheets * boardRate;
+  currentBoardSheets = sheets;
+  const boardCostComputed = sheets * boardRate;
+
+  // Use override if present; otherwise use computed
+  const finalBoardCost = getBoardCostFromOverrideOrComputed(sheets, boardCostComputed);
+  currentBoardCost = finalBoardCost; // store for total calculation
+
+  // detect if override used
+  const overrideEl = document.getElementById("boardCostOverride");
+  const overrideVal = overrideEl ? parseFloat(overrideEl.value) : NaN;
+  const usingOverride = !Number.isNaN(overrideVal) && overrideVal > 0;
 
   document.getElementById("boardResult").innerHTML = `<strong>Board Quotation:</strong><br>
     Selected Board: <b>${boardType || "-"}</b><br>
@@ -692,7 +720,7 @@ function showBoardQuotation(data) {
     Quantity Required: <b>${quantity}</b><br>
     Total Sheets Needed: <b>${sheets}</b><br>
     Rate/Sheet: <b>₹${boardRate.toFixed(2)}</b><br>
-    <strong>Board Cost: ₹${boardCost.toFixed(2)}</strong>`;
+    <strong>Board Cost: ₹${finalBoardCost.toFixed(2)}</strong>${usingOverride ? " <em>(user override)</em>" : ""}`;
 
   document.querySelectorAll('.size-card').forEach(c => {
     c.classList.remove('selected');
@@ -913,10 +941,8 @@ function calculatePrice() {
   // Board cost
   let board = 0;
   if (currentBoardData && currentBoardData.fitCount && currentBoardData.fitCount > 0) {
-    const quantity = parseInt(document.getElementById("quantity").value) || 0;
-    const sheets = Math.ceil(quantity / currentBoardData.fitCount);
-    const boardRate = parseFloat(document.getElementById("boardRate").value) || 0;
-    board = sheets * boardRate;
+    // use currentBoardCost which considers user override
+    board = currentBoardCost || 0;
   }
 
   // Printing (only if enabled)
@@ -952,6 +978,15 @@ document.getElementById("boardRate").addEventListener("input", () => {
   userEditedBoardRate = true; // user manually changed it, do not auto-overwrite
   if (currentBoardData) showBoardQuotation(currentBoardData);
 });
+
+// When user types into the board cost override field, update the display and stored board cost
+const boardCostOverrideEl = document.getElementById("boardCostOverride");
+if (boardCostOverrideEl) {
+  boardCostOverrideEl.addEventListener("input", () => {
+    // re-show quote so it picks up override
+    if (currentBoardData) showBoardQuotation(currentBoardData);
+  });
+}
 
 document.getElementById("togglePrinting").addEventListener("change", function() {
   document.getElementById("printingSection").style.display = this.checked ? "block" : "none";
